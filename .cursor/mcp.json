@@ -1,0 +1,15 @@
+{
+    "mcpServers": {
+      "laravel-boost": {
+        "command": "C:\\Windows\\System32\\wsl.exe",
+        "args": [
+          "--cd",
+          "~",
+          "bash",
+          "-lc",
+          "cd /home/mrbig/WebProjects/ats && docker exec -i $(docker ps --filter name=laravel.test --format '{{.Names}}' | head -n 1) php artisan boost:mcp"
+        ]
+      }
+    }
+  }
+  

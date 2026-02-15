@@ -1,0 +1,229 @@
+---
+alwaysApply: true
+---
+---
+alwaysApply: true
+---
+
+# ATS Domain Specification Rule
+
+This project is an ATS + HR management system.
+
+It manages the full lifecycle of a person:
+
+Person → Candidate → Employee → Former Employee
+
+This is NOT a CRUD app.
+This is a workflow-driven business system.
+
+The assistant must generate code that respects domain workflows and lifecycle transitions.
+
+---
+
+# Core Domain Model
+
+## Person (root entity)
+
+Every candidate and employee is a person.
+Never create employee or candidate without a person.
+
+candidate.person_id → required
+employee.person_id → required
+
+A person may exist without candidate or employee records.
+
+---
+
+## Candidate Pipeline
+
+Candidates belong to a job and move through pipeline stages.
+
+Pipeline stages are configurable and ordered.
+
+Examples:
+applied → screening → interview → offer → hired → rejected
+
+Rules:
+
+* stage changes must be tracked
+* hiring converts candidate to employee
+* rejection does not delete candidate
+* candidate documents and notes are attachable
+* interviews are events linked to candidate
+
+---
+
+## Hiring Workflow
+
+Hiring is NOT a simple update.
+
+When a candidate is hired:
+
+1) employee record must be created
+2) candidate stage becomes hired
+3) activity event logged
+4) entry calendar event created
+
+All steps must happen through a workflow service coordinating actions.
+
+---
+
+## Employee Lifecycle
+
+Employee statuses:
+
+active
+leaving
+left
+
+Termination rules:
+
+When employee becomes leaving or left:
+
+1) exit date event created
+2) housing occupancy closed
+3) room becomes free
+4) activity logged
+
+Never delete employees.
+
+---
+
+## Housing (Apartment / Room)
+
+Apartments contain rooms.
+Rooms contain occupancies.
+Occupancy belongs to employee and has date range.
+
+Rules:
+
+* room availability derived from occupancy dates
+* employee leaving automatically frees room
+* no overlapping occupancies allowed
+
+---
+
+## Meetings & Calendar
+
+System has a unified calendar event model.
+
+Event types:
+
+interview
+internal_meeting
+entry_date
+exit_date
+room_free
+
+All calendar items must be stored as events.
+
+Never store interview date directly on candidate or employee.
+
+---
+
+## Tasks (To Do)
+
+Tasks may belong to:
+
+user
+candidate
+employee
+meeting
+
+Rules:
+
+* overdue tasks visible on dashboard
+* priority and due date required
+* completion stored as timestamp
+
+---
+
+## Dashboard & Activity Tracking
+
+System must log activity events for:
+
+candidate created
+stage changed
+employee hired
+employee terminated
+meeting scheduled
+task created
+
+Dashboard KPIs derive ONLY from activity logs.
+
+Never calculate KPIs from raw tables in controllers.
+
+---
+
+## Permissions
+
+All business actions require policies.
+
+Never perform role checks manually.
+Always use policies.
+
+---
+
+## Integration Ready
+
+The system must be API-first ready.
+
+Requirements:
+
+* versioned endpoints
+* DTO driven actions
+* events for external integrations
+* email/calendar sync via listeners
+
+Do not couple domain logic to external services.
+
+---
+
+# Mandatory Generation Pattern
+
+For EVERY new feature the assistant MUST generate:
+
+DTO
+Repository
+Action
+Policy
+Event
+Unit test
+
+If the feature changes system state across aggregates:
+also generate a Service (workflow orchestrator)
+
+Never generate only controller or only Livewire logic.
+
+---
+
+# Forbidden Shortcuts
+
+The assistant must NEVER:
+
+* place business logic in controllers
+* store calendar dates outside events table
+* directly change employee status without workflow
+* assign room without occupancy record
+* delete employees or candidates
+* compute dashboard stats inside UI layer
+* bypass repositories for queries
+
+---
+
+# Naming Conventions
+
+Actions: VerbNounAction
+DTOs: NounData
+Repositories: NounRepository
+Events: PastTense
+Services: NounWorkflowService
+
+---
+
+# When Unsure
+
+Prefer domain correctness over simplicity.
+
+If a change affects multiple modules:
+create a workflow service and domain events.

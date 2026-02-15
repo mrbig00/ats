@@ -1,0 +1,311 @@
+---
+alwaysApply: true
+---
+---
+alwaysApply: true
+---
+
+# ATS Laravel Code Style Rule
+
+This project follows strict layered architecture and deterministic code generation.
+
+The assistant must generate predictable, uniform Laravel code across all modules.
+
+This rule defines HOW code is written.
+
+---
+
+# DTO Rules
+
+DTOs are immutable transport objects.
+
+Location:
+app/Data/<Module>/<Noun>Data.php
+
+Rules:
+
+* readonly properties
+* no optional arrays
+* no mixed types
+* only scalars, enums, or value objects
+* created from FormRequest or Livewire state
+* never constructed inside repository
+
+Constructor order:
+
+IDs → required fields → optional fields → timestamps
+
+Example:
+
+public function __construct(
+    public int $personId,
+    public int $jobId,
+    public PipelineStage $stage,
+    public ?string $source,
+    public ?CarbonImmutable $appliedAt,
+) {}
+
+---
+
+# Repository Rules
+
+Repositories contain ALL database queries.
+
+Location:
+app/Repositories
+
+Rules:
+
+* always use Eloquent models internally
+* always return Models or Collections
+* never return arrays
+* never contain business decisions
+* no side effects
+* pagination handled here
+
+Allowed methods:
+
+create(Data $data)
+update(Model $model, Data $data)
+delete(Model $model)
+find(Id $id)
+paginate(FilterData $filters)
+
+Forbidden:
+
+if candidate hired → create employee
+date comparisons for domain rules
+permission checks
+
+Repositories only persist and fetch.
+
+---
+
+# Action Rules
+
+Actions represent a single business use case.
+
+Location:
+app/Actions/<Module>
+
+Rules:
+
+* public function handle(Data $data)
+* may call multiple repositories
+* may dispatch events
+* may validate domain invariants
+* must NOT access request(), auth(), or facades
+* must NOT perform complex queries (use repository)
+
+Return:
+
+Model or DTO only
+
+Never return bool.
+
+---
+
+# Workflow Service Rules
+
+Workflow services coordinate multiple actions.
+
+Location:
+app/Services
+
+Rules:
+
+* orchestrates actions
+* contains no database queries
+* contains no validation
+* only sequence of actions
+* wrapped in DB transaction
+
+Example use cases:
+
+HireCandidateWorkflowService
+TerminateEmployeeWorkflowService
+
+---
+
+# Controller Rules
+
+Controllers are transport layer only.
+
+Allowed:
+
+authorize
+call Action or Service
+return resource/json/view
+
+Forbidden:
+
+loops
+mapping arrays
+queries
+business decisions
+
+Max 10 lines per method.
+
+---
+
+# Livewire Rules
+
+Livewire components are UI adapters.
+
+Allowed:
+
+map state → DTO
+call Action
+dispatch browser events
+
+Forbidden:
+
+saving models
+queries
+business rules
+permission checks
+
+---
+
+# Policy Rules
+
+Policies decide access only.
+
+Policies must not:
+
+query unrelated models
+change state
+trigger events
+
+Return bool only.
+
+---
+
+# Event Rules
+
+Events represent completed domain actions.
+
+Past tense naming:
+CandidateHired
+InterviewScheduled
+EmployeeTerminated
+
+Events must contain only primitive data or IDs.
+
+Listeners perform side effects:
+
+emails
+notifications
+external sync
+activity logging
+
+Never perform side effects inside Actions.
+
+---
+
+# Model Rules
+
+Models are Active Record only.
+
+Allowed:
+
+relations
+casts
+scopes
+
+Forbidden:
+
+creating other models
+sending notifications
+business workflows
+status transitions
+
+---
+
+# Query Rules
+
+Never write queries outside repositories.
+
+Forbidden everywhere else:
+
+Model::query()
+DB::table()
+->where(...)
+
+Exception:
+relationship access inside models
+
+---
+
+# Date Handling
+
+Always use CarbonImmutable.
+Never use mutable Carbon.
+
+All timestamps stored UTC.
+
+---
+
+# Collections & Resources
+
+API responses must use Resources.
+Never return models directly from controllers.
+
+Pagination always uses:
+
+->paginate(15)
+
+---
+
+# Testing Rules
+
+Every Action must have a unit test.
+
+Tests must:
+
+instantiate Action
+use real database (RefreshDatabase)
+assert database state
+assert event dispatched
+
+Do not test controllers in unit tests.
+
+---
+
+# Error Handling
+
+Domain errors must use custom exceptions:
+
+DomainException subclasses
+
+Never throw generic Exception.
+
+---
+
+# Consistency Rules
+
+Never mix:
+
+arrays + DTOs
+services + repositories responsibilities
+events + notifications
+
+One responsibility per layer.
+
+---
+
+# When Generating Code
+
+The assistant must prefer:
+
+small classes
+early returns
+explicit types
+constructor injection
+
+Avoid:
+
+facades
+helpers
+static calls
+god services

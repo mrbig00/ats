@@ -1,0 +1,163 @@
+---
+alwaysApply: true
+---
+# Development Environment Rules (WSL2 + Laravel Sail)
+
+## Runtime Environment
+
+This project ALWAYS runs inside Docker using Laravel Sail.
+
+Host machine:
+Windows → WSL2 (Ubuntu)
+
+PHP, Node, Composer, and database DO NOT exist on the host system.
+They exist ONLY inside containers.
+
+Therefore:
+NEVER run php, composer, npm, artisan, or node directly.
+ALWAYS run them through Sail.
+
+---
+
+## Command Execution Rules
+
+Every command must be executed using Sail:
+
+Correct:
+./vendor/bin/sail artisan migrate
+./vendor/bin/sail composer install
+./vendor/bin/sail npm run build
+./vendor/bin/sail test
+
+Forbidden:
+php artisan migrate
+composer install
+npm run dev
+node script.js
+
+If generating documentation, instructions, or README content → always use Sail.
+
+---
+
+## Background Processes
+
+The application is not served with:
+php artisan serve
+
+It is served automatically by the container at:
+http://localhost
+
+Never instruct to run a dev server manually.
+
+---
+
+## Database Rules
+
+Database runs inside Docker container:
+pgsql:5432
+
+Never reference:
+127.0.0.1 database
+localhost database from PHP
+
+Inside Laravel the DB host must be:
+pgsql
+
+---
+
+## File System Performance (WSL2)
+
+The project lives INSIDE the Linux filesystem:
+
+Correct path:
+~/code/ats
+
+Forbidden location:
+mnt/c/
+Windows filesystem paths
+
+Never recommend moving the project to Windows directories.
+
+---
+
+## Installing Packages
+
+When installing dependencies:
+
+Composer:
+./vendor/bin/sail composer require package/name
+
+NPM:
+./vendor/bin/sail npm install package
+
+Never run package managers on the host.
+
+---
+
+## Queue, Scheduler, and Workers
+
+Workers run inside Sail containers.
+
+Correct:
+./vendor/bin/sail artisan queue:work
+./vendor/bin/sail artisan schedule:work
+
+Never suggest:
+supervisor on host
+cron on Windows
+
+---
+
+## Testing
+
+All tests must run inside the container:
+
+./vendor/bin/sail test
+
+Not:
+php artisan test
+vendor/bin/phpunit
+
+---
+
+## Debugging
+
+If debugging is required:
+Use logs or Laravel dump tools.
+
+Log file:
+storage/logs/laravel.log
+
+Do not suggest installing local PHP extensions.
+
+---
+
+## Ports
+
+Application: localhost
+Vite: localhost:5173
+Mailpit: localhost:8025
+Postgres: exposed only inside Docker
+
+Never instruct connecting to DB from host using Laravel credentials.
+
+---
+
+## Generating Documentation
+
+Whenever generating setup instructions, README, or tutorials:
+ASSUME a fresh WSL2 + Docker + Sail environment.
+Do not include XAMPP, MAMP, Valet, Herd, or native PHP instructions.
+
+---
+
+## AI Behavior Requirement
+
+When providing commands:
+Prefer copy-paste safe one-liners.
+Avoid multi-step manual environment setup.
+
+If unsure whether something runs inside or outside container → it runs inside Sail.
+
+
+repository link: https://github.com/mrbig00/ats

@@ -1,0 +1,220 @@
+---
+alwaysApply: true
+---
+
+# ATS Multilanguage Interface Rule
+
+The application interface must be fully multilanguage.
+
+Default language: German (de)
+Secondary languages: English (en), Hungarian (hu), Romanian (ro)
+
+NO user-visible text may be hardcoded in code, Blade, Livewire, validation, or enums.
+
+All visible strings must be translatable.
+
+---
+
+# Translation Storage
+
+Use Laravel JSON translations:
+
+lang/de.json
+lang/en.json
+lang/hu.json
+lang/ro.json
+
+Do NOT create PHP array translation files unless pluralization is required.
+
+Keys must be stable and human readable.
+
+Example keys:
+
+"candidate.created"
+"candidate.hired"
+"employee.terminated"
+"task.overdue"
+"meeting.interview"
+
+Never use full sentences as keys.
+
+---
+
+# Blade Rules
+
+Forbidden:
+
+<h1>Create Candidate</h1>
+<button>Save</button>
+
+Required:
+
+<h1>{{ __('candidate.create') }}</h1>
+<button>{{ __('common.save') }}</button>
+
+Blade may only contain translation calls for text.
+
+---
+
+# Livewire Rules
+
+Livewire components must never emit raw text.
+
+Forbidden:
+
+$this->dispatch('notify', 'Candidate saved');
+
+Required:
+
+$this->dispatch('notify', __('candidate.saved'));
+
+---
+
+# Validation Rules
+
+Validation messages must be translated.
+
+FormRequest rules must use keys:
+
+'first_name.required' => __('validation.first_name_required')
+
+Never write literal validation messages.
+
+---
+
+# Enums
+
+Enums must not return human text directly.
+
+Instead:
+
+public function label(): string
+{
+    return __('pipeline_stage.' . $this->value);
+}
+
+Enum values must be stable identifiers, not translated words.
+
+Correct:
+APPLIED
+INTERVIEW
+HIRED
+
+Wrong:
+BEWERBEN
+INTERJÚ
+
+---
+
+# Database Content
+
+User-generated content is NOT translated:
+
+notes
+candidate comments
+documents
+emails
+
+System labels ARE translated:
+
+statuses
+types
+UI labels
+buttons
+menus
+
+---
+
+# API Rules
+
+API responses must return:
+
+stable identifiers + translated label
+
+Example:
+
+{
+  "status": "HIRED",
+  "label": "Eingestellt"
+}
+
+Never return only translated text.
+
+---
+
+# Logging & Activities
+
+Activity events store identifiers only:
+
+candidate.hired
+employee.terminated
+
+Translation happens at presentation layer.
+
+---
+
+# Date & Number Localization
+
+Dates and numbers must be formatted using locale:
+
+->isoFormat()
+Number::format()
+
+Never manually format dates in Blade.
+
+---
+
+# Adding New Features
+
+Whenever a new UI element is introduced, the assistant MUST:
+
+1) Add translation keys to all languages
+2) Use translation in Blade/Livewire
+3) Never fallback to English text
+
+Missing translation keys are considered a bug.
+
+---
+
+# Naming Convention
+
+Domains:
+
+candidate.*
+employee.*
+job.*
+task.*
+meeting.*
+housing.*
+dashboard.*
+common.*
+validation.*
+
+---
+
+# Forbidden Shortcuts
+
+Never:
+
+hardcode button labels
+hardcode menu titles
+hardcode status names
+translate inside database
+store translated enums
+mix locale in logic
+
+All translation happens at the presentation boundary.
+
+---
+
+# When Generating Code
+
+The assistant must automatically generate translation entries for:
+
+buttons
+titles
+notifications
+validation messages
+status labels
+
+Every feature must update translation files.

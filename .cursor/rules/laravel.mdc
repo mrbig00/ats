@@ -1,0 +1,284 @@
+---
+alwaysApply: true
+---
+# Laravel ATS Engineering Rules
+
+## Core Philosophy
+
+This is a long-term maintainable SaaS application.
+Always optimize for readability, testability, and separation of concerns — NOT speed of writing.
+
+Never place business logic in:
+
+* controllers
+* Livewire components
+* Blade views
+* routes
+
+They may orchestrate only.
+
+Business logic MUST live in Actions, Services, or Domain classes.
+
+---
+
+## Architecture
+
+Use a layered architecture:
+
+Domain → Actions → Services → Controllers/Livewire → Views
+
+### Domain
+
+Location: app/Domain
+
+Contains:
+
+* Entities (rich models)
+* Value Objects
+* Enums
+* Policies
+* Domain rules
+
+Domain must NOT depend on Laravel facades.
+
+---
+
+### Actions (Single responsibility use cases)
+
+Location: app/Actions
+
+An Action performs ONE business operation.
+
+Examples:
+CreateCandidateAction
+UpdateJobPostingAction
+ScheduleInterviewAction
+
+Rules:
+
+* Public method: handle()
+* Receives typed DTO
+* Returns model or DTO
+* No HTTP, no request(), no auth()
+
+---
+
+### Services (Orchestration / workflows)
+
+Location: app/Services
+
+Used only when multiple actions must be coordinated.
+
+Services may call multiple actions but contain no database queries themselves.
+
+---
+
+### DTOs
+
+Location: app/Data
+
+Use immutable DTO objects instead of arrays.
+
+DTO rules:
+
+* readonly properties
+* constructed from Request or Livewire state
+* validation occurs before DTO creation
+
+Never pass arrays into actions.
+
+---
+
+### Repositories
+
+Location: app/Repositories
+
+All database queries belong here.
+
+Rules:
+
+* Eloquent cannot be used outside repositories (except relationships inside models)
+* Controllers, Livewire, Actions cannot write queries
+
+---
+
+## Controllers
+
+Controllers must be thin.
+
+Allowed:
+
+* authorize
+* validate (FormRequest only)
+* call Action
+* return response
+
+Forbidden:
+
+* DB queries
+* loops transforming data
+* business decisions
+
+---
+
+## Livewire Components
+
+Livewire is UI only.
+
+Rules:
+
+* No business logic
+* No queries
+* Only call Actions
+* State represents UI state only
+
+Move logic to Actions immediately.
+
+Never calculate permissions inside Livewire — use Policies.
+
+---
+
+## Blade Views
+
+Blade is presentation only.
+
+Forbidden:
+
+* if business rules
+* database calls
+* complex loops
+* calculations
+
+Allowed:
+
+* simple conditionals
+* formatting
+* components
+
+If logic appears → create ViewModel.
+
+---
+
+## Validation
+
+Always use FormRequest or dedicated Validator class.
+
+Never validate inside:
+
+* controllers
+* livewire methods
+* actions
+
+---
+
+## Authorization
+
+Use Policies only.
+
+Never:
+auth()->user()->role checks
+Gate::allows inline
+
+Always:
+$this->authorize('update', $candidate)
+
+---
+
+## Models
+
+Models must stay thin (Active Record only).
+
+Allowed:
+
+* relationships
+* scopes
+* casts
+
+Forbidden:
+
+* workflows
+* side effects
+* notifications
+* external services
+
+---
+
+## Events
+
+Side effects must be event driven.
+
+Example:
+CandidateCreated
+InterviewScheduled
+
+Listeners handle:
+
+* emails
+* notifications
+* logging
+* integrations
+
+---
+
+## Naming Conventions
+
+Actions: VerbNounAction
+DTOs: NounData
+Repositories: NounRepository
+Services: NounService
+Events: PastTense
+
+---
+
+## Testing Strategy
+
+Every Action MUST have a unit test.
+Feature tests only test endpoints.
+
+Never mock Eloquent models — mock repositories instead.
+
+---
+
+## Livewire Specific Rules
+
+Livewire components must:
+
+* map UI → DTO
+* call Action
+* handle validation errors
+* emit UI events only
+
+They must NOT:
+
+* send mail
+* create models directly
+* contain domain rules
+
+---
+
+## Code Style
+
+Prefer:
+early returns
+small methods
+pure functions
+
+Avoid:
+static helpers
+facades in domain
+god classes
+arrays as data transport
+
+Max method length: 20 lines
+Max class length: 200 lines
+
+---
+
+## When generating code
+
+ALWAYS generate:
+DTO + Action + Repository + Policy when creating a new feature.
+
+NEVER generate a fat controller or fat Livewire component.
+
+If unsure → move logic deeper (toward Domain).
