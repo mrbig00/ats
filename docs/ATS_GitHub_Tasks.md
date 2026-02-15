@@ -1,6 +1,9 @@
 # ATS System — GitHub task list (from ATS_System_Spec_EN.md)
 
-Use this list to create hierarchical issues. **To have the agent create them via GitHub MCP, provide your repository `owner/repo` (e.g. `myorg/ats`).**
+Use this list to create hierarchical issues.
+
+- **Create via agent (GitHub MCP):** Tell the agent your repository `owner/repo` (e.g. `myorg/ats`). The agent can then create all issues and link sub-issues to epics.
+- **Create via script:** Run `REPO=owner/repo ./docs/create_github_issues.sh` (requires [GitHub CLI](https://cli.github.com/) and `gh auth login`). The script creates suggested labels if missing, then creates all epics and sub-issues with **Epic:** links in the body.
 
 Suggested labels (create in repo if missing): `epic`, `module:dashboard`, `module:candidates`, `module:jobs`, `module:employees`, `module:housing`, `module:todo`, `module:meetings`, `module:settings`, `integration:outlook`, `integration:api`, `spec`, `ui`, `backend`, `i18n`.
 

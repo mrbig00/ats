@@ -1,6 +1,8 @@
 ---
 alwaysApply: true
 ---
+# Github repository:
+https://github.com/mrbig00/ats
 # Development Environment Rules (WSL2 + Laravel Sail)
 
 ## Runtime Environment
