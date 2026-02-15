@@ -11,32 +11,53 @@
 
             <flux:navbar class="-mb-px max-lg:hidden">
                 <flux:navbar.item icon="layout-grid" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>
-                    {{ __('Dashboard') }}
+                    {{ __('nav.dashboard') }}
+                </flux:navbar.item>
+                <flux:navbar.item icon="user-plus" :href="route('candidates.index')" :current="request()->routeIs('candidates.*')" wire:navigate>
+                    {{ __('nav.candidates') }}
+                </flux:navbar.item>
+                <flux:navbar.item icon="briefcase" :href="route('jobs.index')" :current="request()->routeIs('jobs.*')" wire:navigate>
+                    {{ __('nav.jobs') }}
+                </flux:navbar.item>
+                <flux:navbar.item icon="users" :href="route('employees.index')" :current="request()->routeIs('employees.*')" wire:navigate>
+                    {{ __('nav.employees') }}
+                </flux:navbar.item>
+                <flux:navbar.item icon="building-office-2" :href="route('housing.index')" :current="request()->routeIs('housing.*')" wire:navigate>
+                    {{ __('nav.housing') }}
+                </flux:navbar.item>
+                <flux:navbar.item icon="clipboard-document-check" :href="route('todo.index')" :current="request()->routeIs('todo.*')" wire:navigate>
+                    {{ __('nav.todo') }}
+                </flux:navbar.item>
+                <flux:navbar.item icon="calendar-days" :href="route('meetings.index')" :current="request()->routeIs('meetings.*')" wire:navigate>
+                    {{ __('nav.meetings') }}
+                </flux:navbar.item>
+                <flux:navbar.item icon="cog-6-tooth" :href="route('settings.index')" :current="request()->routeIs('settings.*')" wire:navigate>
+                    {{ __('nav.settings') }}
                 </flux:navbar.item>
             </flux:navbar>
 
             <flux:spacer />
 
             <flux:navbar class="me-1.5 space-x-0.5 rtl:space-x-reverse py-0!">
-                <flux:tooltip :content="__('Search')" position="bottom">
-                    <flux:navbar.item class="!h-10 [&>div>svg]:size-5" icon="magnifying-glass" href="#" :label="__('Search')" />
+                <flux:tooltip :content="__('common.search')" position="bottom">
+                    <flux:navbar.item class="!h-10 [&>div>svg]:size-5" icon="magnifying-glass" href="#" :label="__('common.search')" />
                 </flux:tooltip>
-                <flux:tooltip :content="__('Repository')" position="bottom">
+                <flux:tooltip :content="__('nav.repository')" position="bottom">
                     <flux:navbar.item
                         class="h-10 max-lg:hidden [&>div>svg]:size-5"
                         icon="folder-git-2"
                         href="https://github.com/laravel/livewire-starter-kit"
                         target="_blank"
-                        :label="__('Repository')"
+                        :label="__('nav.repository')"
                     />
                 </flux:tooltip>
-                <flux:tooltip :content="__('Documentation')" position="bottom">
+                <flux:tooltip :content="__('nav.documentation')" position="bottom">
                     <flux:navbar.item
                         class="h-10 max-lg:hidden [&>div>svg]:size-5"
                         icon="book-open-text"
                         href="https://laravel.com/docs/starter-kits#livewire"
                         target="_blank"
-                        :label="__('Documentation')"
+                        :label="__('nav.documentation')"
                     />
                 </flux:tooltip>
             </flux:navbar>
@@ -52,9 +73,30 @@
             </flux:sidebar.header>
 
             <flux:sidebar.nav>
-                <flux:sidebar.group :heading="__('Platform')">
+                <flux:sidebar.group :heading="__('nav.platform')">
                     <flux:sidebar.item icon="layout-grid" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>
-                        {{ __('Dashboard')  }}
+                        {{ __('nav.dashboard') }}
+                    </flux:sidebar.item>
+                    <flux:sidebar.item icon="user-plus" :href="route('candidates.index')" :current="request()->routeIs('candidates.*')" wire:navigate>
+                        {{ __('nav.candidates') }}
+                    </flux:sidebar.item>
+                    <flux:sidebar.item icon="briefcase" :href="route('jobs.index')" :current="request()->routeIs('jobs.*')" wire:navigate>
+                        {{ __('nav.jobs') }}
+                    </flux:sidebar.item>
+                    <flux:sidebar.item icon="users" :href="route('employees.index')" :current="request()->routeIs('employees.*')" wire:navigate>
+                        {{ __('nav.employees') }}
+                    </flux:sidebar.item>
+                    <flux:sidebar.item icon="building-office-2" :href="route('housing.index')" :current="request()->routeIs('housing.*')" wire:navigate>
+                        {{ __('nav.housing') }}
+                    </flux:sidebar.item>
+                    <flux:sidebar.item icon="clipboard-document-check" :href="route('todo.index')" :current="request()->routeIs('todo.*')" wire:navigate>
+                        {{ __('nav.todo') }}
+                    </flux:sidebar.item>
+                    <flux:sidebar.item icon="calendar-days" :href="route('meetings.index')" :current="request()->routeIs('meetings.*')" wire:navigate>
+                        {{ __('nav.meetings') }}
+                    </flux:sidebar.item>
+                    <flux:sidebar.item icon="cog-6-tooth" :href="route('settings.index')" :current="request()->routeIs('settings.*')" wire:navigate>
+                        {{ __('nav.settings') }}
                     </flux:sidebar.item>
                 </flux:sidebar.group>
             </flux:sidebar.nav>
@@ -63,10 +105,10 @@
 
             <flux:sidebar.nav>
                 <flux:sidebar.item icon="folder-git-2" href="https://github.com/laravel/livewire-starter-kit" target="_blank">
-                    {{ __('Repository') }}
+                    {{ __('nav.repository') }}
                 </flux:sidebar.item>
                 <flux:sidebar.item icon="book-open-text" href="https://laravel.com/docs/starter-kits#livewire" target="_blank">
-                    {{ __('Documentation') }}
+                    {{ __('nav.documentation') }}
                 </flux:sidebar.item>
             </flux:sidebar.nav>
         </flux:sidebar>

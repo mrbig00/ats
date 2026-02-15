@@ -11,9 +11,30 @@
             </flux:sidebar.header>
 
             <flux:sidebar.nav>
-                <flux:sidebar.group :heading="__('Platform')" class="grid">
+                <flux:sidebar.group :heading="__('nav.platform')" class="grid">
                     <flux:sidebar.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>
-                        {{ __('Dashboard') }}
+                        {{ __('nav.dashboard') }}
+                    </flux:sidebar.item>
+                    <flux:sidebar.item icon="user-plus" :href="route('candidates.index')" :current="request()->routeIs('candidates.*')" wire:navigate>
+                        {{ __('nav.candidates') }}
+                    </flux:sidebar.item>
+                    <flux:sidebar.item icon="briefcase" :href="route('jobs.index')" :current="request()->routeIs('jobs.*')" wire:navigate>
+                        {{ __('nav.jobs') }}
+                    </flux:sidebar.item>
+                    <flux:sidebar.item icon="users" :href="route('employees.index')" :current="request()->routeIs('employees.*')" wire:navigate>
+                        {{ __('nav.employees') }}
+                    </flux:sidebar.item>
+                    <flux:sidebar.item icon="building-office-2" :href="route('housing.index')" :current="request()->routeIs('housing.*')" wire:navigate>
+                        {{ __('nav.housing') }}
+                    </flux:sidebar.item>
+                    <flux:sidebar.item icon="clipboard-document-check" :href="route('todo.index')" :current="request()->routeIs('todo.*')" wire:navigate>
+                        {{ __('nav.todo') }}
+                    </flux:sidebar.item>
+                    <flux:sidebar.item icon="calendar-days" :href="route('meetings.index')" :current="request()->routeIs('meetings.*')" wire:navigate>
+                        {{ __('nav.meetings') }}
+                    </flux:sidebar.item>
+                    <flux:sidebar.item icon="cog-6-tooth" :href="route('settings.index')" :current="request()->routeIs('settings.*')" wire:navigate>
+                        {{ __('nav.settings') }}
                     </flux:sidebar.item>
                 </flux:sidebar.group>
             </flux:sidebar.nav>
@@ -22,11 +43,10 @@
 
             <flux:sidebar.nav>
                 <flux:sidebar.item icon="folder-git-2" href="https://github.com/laravel/livewire-starter-kit" target="_blank">
-                    {{ __('Repository') }}
+                    {{ __('nav.repository') }}
                 </flux:sidebar.item>
-
                 <flux:sidebar.item icon="book-open-text" href="https://laravel.com/docs/starter-kits#livewire" target="_blank">
-                    {{ __('Documentation') }}
+                    {{ __('nav.documentation') }}
                 </flux:sidebar.item>
             </flux:sidebar.nav>
 
@@ -66,7 +86,7 @@
 
                     <flux:menu.radio.group>
                         <flux:menu.item :href="route('profile.edit')" icon="cog" wire:navigate>
-                            {{ __('Settings') }}
+                            {{ __('common.settings') }}
                         </flux:menu.item>
                     </flux:menu.radio.group>
 
@@ -81,7 +101,7 @@
                             class="w-full cursor-pointer"
                             data-test="logout-button"
                         >
-                            {{ __('Log Out') }}
+                            {{ __('common.log_out') }}
                         </flux:menu.item>
                     </form>
                 </flux:menu>
