@@ -19,5 +19,13 @@ class UserSeeder extends Seeder
                 'password' => 'password',
             ]
         );
+
+        User::updateOrCreate(
+            ['email' => 'hubamagyarosi@gmail.com'],
+            [
+                'name' => 'Magyarosi Huba',
+                'password' => 'password',
+            ]
+        );
     }
 }
