@@ -1,0 +1,322 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-config
+data:
+  POSTGRES_DB: ats
+  POSTGRES_USER: ats
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: postgres-secret
+type: Opaque
+stringData:
+  POSTGRES_PASSWORD: changeme_secure_password
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: ats-laravel-secret
+type: Opaque
+stringData:
+  APP_KEY: base64:k7JmN2pQ4rT6vX9zA1bC3dE5fG7hI0jL2nO4qR8sU6wY=
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: ats-postgres
+  labels:
+    app: ats-postgres
+spec:
+  serviceName: ats-postgres
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ats-postgres
+  template:
+    metadata:
+      labels:
+        app: ats-postgres
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:17-alpine
+          ports:
+            - containerPort: 5432
+              name: postgres
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          env:
+            - name: POSTGRES_DB
+              valueFrom:
+                configMapKeyRef:
+                  name: postgres-config
+                  key: POSTGRES_DB
+            - name: POSTGRES_USER
+              valueFrom:
+                configMapKeyRef:
+                  name: postgres-config
+                  key: POSTGRES_USER
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: POSTGRES_PASSWORD
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+          livenessProbe:
+            exec:
+              command:
+                - pg_isready
+                - -U
+                - ats
+                - -d
+                - ats
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            exec:
+              command:
+                - pg_isready
+                - -U
+                - ats
+                - -d
+                - ats
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+          volumeMounts:
+            - name: ats-postgres-storage
+              mountPath: /var/lib/postgresql/data
+  volumeClaimTemplates:
+    - metadata:
+        name: ats-postgres-storage
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 10Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ats-postgres
+  labels:
+    app: ats-postgres
+spec:
+  type: ClusterIP
+  selector:
+    app: ats-postgres
+  ports:
+    - port: 5432
+      targetPort: 5432
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: ats-laravel-storage
+  labels:
+    app: ats-laravel
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ats
+  labels:
+    app: ats
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ats
+  template:
+    metadata:
+      labels:
+        app: ats
+    spec:
+      # www-data in PHP image is typically UID 33; fsGroup makes volume writable by that group
+      securityContext:
+        fsGroup: 33
+      initContainers:
+        # Create storage directory structure on PVC and set ownership for Laravel (www-data = 33:33)
+        - name: storage-init
+          image: busybox:1.36
+          command:
+            - sh
+            - -c
+            - |
+              mkdir -p /storage/app/public
+              mkdir -p /storage/logs
+              mkdir -p /storage/framework/cache /storage/framework/sessions /storage/framework/views
+              chown -R 33:33 /storage
+          volumeMounts:
+            - name: laravel-storage
+              mountPath: /storage
+      containers:
+        - name: redis
+          image: redis:7-alpine
+          ports:
+            - containerPort: 6379
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+        - name: laravel
+          imagePullPolicy: Always
+          image: ghcr.io/mrbig00/ats:latest
+          ports:
+            - containerPort: 8080
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "1000m"
+          env:
+            # Application
+            - name: APP_NAME
+              value: "Trip Planner"
+            - name: APP_ENV
+              value: preprod
+            - name: APP_KEY
+              value: base64:VjxPe7zpVHs6/vo0+QzMMD3rI/h49MMA9AVVK36xB+c=
+            - name: APP_DEBUG
+              value: "true"
+            - name: APP_URL
+              value: "https://ats.k3s.szanto-zoltan.com"
+
+            # Database
+            - name: DB_CONNECTION
+              value: pgsql
+            - name: DB_HOST
+              value: ats-postgres
+            - name: DB_PORT
+              value: "5432"
+            - name: DB_DATABASE
+              valueFrom:
+                configMapKeyRef:
+                  name: postgres-config
+                  key: POSTGRES_DB
+            - name: DB_USERNAME
+              valueFrom:
+                configMapKeyRef:
+                  name: postgres-config
+                  key: POSTGRES_USER
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: POSTGRES_PASSWORD
+            - name: AUTORUN_ENABLED
+              value: "true"
+
+            # Cache & Session
+            - name: CACHE_STORE
+              value: redis
+            - name: SESSION_DRIVER
+              value: redis
+            - name: QUEUE_CONNECTION
+              value: database
+
+            # Logging
+            - name: LOG_CHANNEL
+              value: stderr
+            - name: LOG_LEVEL
+              value: info
+
+            # Broadcasting & Queue
+            - name: BROADCAST_CONNECTION
+              value: log
+          livenessProbe:
+            httpGet:
+              path: /up
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 15
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /up
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+          startupProbe:
+            httpGet:
+              path: /up
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 30
+          volumeMounts:
+            - name: laravel-storage
+              mountPath: /var/www/html/storage/app
+              subPath: app
+            - name: laravel-storage
+              mountPath: /var/www/html/storage/logs
+              subPath: logs
+            - name: laravel-storage
+              mountPath: /var/www/html/storage/framework/cache
+              subPath: framework/cache
+            - name: laravel-storage
+              mountPath: /var/www/html/storage/framework/sessions
+              subPath: framework/sessions
+            - name: laravel-storage
+              mountPath: /var/www/html/storage/framework/views
+              subPath: framework/views
+      volumes:
+        - name: laravel-storage
+          persistentVolumeClaim:
+            claimName: ats-laravel-storage
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ats
+  labels:
+    app: ats
+spec:
+  type: ClusterIP
+  selector:
+    app: ats
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8080
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ats-ingress
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: ats.k3s.szanto-zoltan.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: ats
+                port:
+                  number: 80
