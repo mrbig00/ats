@@ -43,7 +43,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.REGISTRY }}/${{ github.repository_owner }}/trip-planner
+          images: ${{ env.REGISTRY }}/${{ github.repository_owner }}/ats
           tags: |
             type=ref,event=branch
             type=sha,prefix=
