@@ -60,6 +60,13 @@ class CandidateRepository
             $query->where('position_id', $filters->positionId);
         }
 
+        if ($filters->appliedFrom !== null && $filters->appliedFrom !== '') {
+            $query->whereDate('applied_at', '>=', $filters->appliedFrom);
+        }
+        if ($filters->appliedTo !== null && $filters->appliedTo !== '') {
+            $query->whereDate('applied_at', '<=', $filters->appliedTo);
+        }
+
         $direction = strtolower($filters->sortDirection) === 'desc' ? 'desc' : 'asc';
         $query->orderBy($this->sortFieldColumn($filters->sortField), $direction);
 

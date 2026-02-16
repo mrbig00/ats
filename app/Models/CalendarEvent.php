@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class CalendarEvent extends Model
 {
+    use HasFactory;
+
     public const TYPE_INTERVIEW = 'interview';
 
     public const TYPE_INTERNAL_MEETING = 'internal_meeting';
@@ -24,6 +27,7 @@ class CalendarEvent extends Model
         'starts_at',
         'ends_at',
         'candidate_id',
+        'room_id',
     ];
 
     protected function casts(): array
@@ -37,6 +41,11 @@ class CalendarEvent extends Model
     public function candidate(): BelongsTo
     {
         return $this->belongsTo(Candidate::class);
+    }
+
+    public function room(): BelongsTo
+    {
+        return $this->belongsTo(Room::class);
     }
 
     public function isInterview(): bool

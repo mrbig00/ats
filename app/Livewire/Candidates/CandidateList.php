@@ -21,11 +21,28 @@ class CandidateList extends Component
 
     public ?int $positionId = null;
 
+    public string $appliedFrom = '';
+
+    public string $appliedTo = '';
+
     public string $sortField = 'created_at';
 
     public string $sortDirection = 'asc';
 
     public int $perPage = 15;
+
+    protected function queryString(): array
+    {
+        return [
+            'search' => ['as' => 'q', 'except' => ''],
+            'pipelineStageId' => ['as' => 'stage', 'except' => ''],
+            'positionId' => ['as' => 'position', 'except' => ''],
+            'appliedFrom' => ['as' => 'from', 'except' => ''],
+            'appliedTo' => ['as' => 'to', 'except' => ''],
+            'sortField' => ['as' => 'sort', 'except' => 'created_at'],
+            'sortDirection' => ['as' => 'dir', 'except' => 'asc'],
+        ];
+    }
 
     public function mount(): void
     {
@@ -41,6 +58,8 @@ class CandidateList extends Component
             search: trim($this->search) !== '' ? trim($this->search) : null,
             pipelineStageId: $this->pipelineStageId ? (int) $this->pipelineStageId : null,
             positionId: $this->positionId ? (int) $this->positionId : null,
+            appliedFrom: trim($this->appliedFrom) !== '' ? trim($this->appliedFrom) : null,
+            appliedTo: trim($this->appliedTo) !== '' ? trim($this->appliedTo) : null,
             sortField: $this->sortField,
             sortDirection: $this->sortDirection,
             perPage: $this->perPage,
@@ -77,6 +96,23 @@ class CandidateList extends Component
 
     public function updatedPositionId(): void
     {
+        $this->resetPage();
+    }
+
+    public function updatedAppliedFrom(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedAppliedTo(): void
+    {
+        $this->resetPage();
+    }
+
+    public function clearAppliedRange(): void
+    {
+        $this->appliedFrom = '';
+        $this->appliedTo = '';
         $this->resetPage();
     }
 

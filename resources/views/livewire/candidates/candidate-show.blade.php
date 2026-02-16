@@ -85,10 +85,11 @@
                     <ul class="space-y-2">
                         @foreach ($candidate->interviews as $interview)
                             <li class="flex items-center justify-between rounded-lg border border-zinc-200 p-3 dark:border-zinc-700" wire:key="interview-{{ $interview->id }}">
-                                <div>
+                                <flux:link :href="route('meetings.show', $interview)" wire:navigate class="flex-1">
                                     <flux:text class="font-medium">{{ $interview->title }}</flux:text>
                                     <flux:text class="text-sm text-zinc-500 dark:text-zinc-400">{{ $interview->starts_at->isoFormat('L LT') }}</flux:text>
-                                </div>
+                                </flux:link>
+                                <flux:button size="sm" icon="eye" :href="route('meetings.show', $interview)" wire:navigate variant="ghost" />
                             </li>
                         @endforeach
                         @if ($candidate->interviews->isEmpty())

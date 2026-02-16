@@ -154,13 +154,17 @@ class CandidateShow extends Component
             'documentName' => __('candidate.document_name'),
         ]);
 
+        // Read size and mime type before store(): with same disk, Livewire moves the temp file and metadata is no longer available.
+        $size = $this->documentFile->getSize();
+        $mimeType = $this->documentFile->getMimeType();
+
         $path = $this->documentFile->store('candidate-documents/'.$this->candidate->id, 'local');
         app(CandidateDocumentRepository::class)->create(
             candidateId: $this->candidate->id,
             name: $this->documentName,
             path: $path,
-            mimeType: $this->documentFile->getMimeType(),
-            size: $this->documentFile->getSize(),
+            mimeType: $mimeType,
+            size: $size,
         );
 
         $this->reset(['documentFile', 'documentName']);

@@ -35,4 +35,9 @@ class Position extends Model
     {
         return $this->status === 'open';
     }
+
+    public function statusLabel(): string
+    {
+        return $this->status === 'open' ? __('job.status_open') : __('job.status_closed');
+    }
 }

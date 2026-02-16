@@ -1,0 +1,319 @@
+---
+alwaysApply: true
+---
+## Frontend UI Architecture Rules
+
+### Core Principle
+
+All view layer code must be implemented using:
+
+* **TailwindCSS** for styling
+* **Flux UI components** for structure and interaction
+
+The application must never introduce parallel styling systems or handcrafted UI patterns when an equivalent Flux UI component exists.
+
+---
+
+## Absolute Rules
+
+### 1. No Raw Styling
+
+Do **NOT** write custom CSS unless:
+
+* It extends Tailwind via config
+* It creates design tokens
+* It styles a third-party library wrapper
+
+Forbidden:
+
+* Standalone `.css` files for layout or components
+* Inline `<style>` blocks
+* CSS modules
+* SCSS/SASS
+* Styled-components
+* Emotion
+* Bootstrap / Material / Chakra / etc.
+
+Allowed:
+
+* `tailwind.config.ts` extensions
+* CSS variables for theme tokens
+* `@layer utilities` inside Tailwind only
+
+---
+
+### 2. Use Flux UI Components First
+
+If a UI element exists in Flux UI → you MUST use it.
+
+Never recreate:
+
+| UI Element | Required         |
+| ---------- | ---------------- |
+| Buttons    | `<FluxButton>`   |
+| Inputs     | `<FluxInput>`    |
+| Selects    | `<FluxSelect>`   |
+| Cards      | `<FluxCard>`     |
+| Modals     | `<FluxModal>`    |
+| Dropdowns  | `<FluxDropdown>` |
+| Tables     | `<FluxTable>`    |
+| Alerts     | `<FluxAlert>`    |
+| Tabs       | `<FluxTabs>`     |
+| Navigation | `<FluxNavbar>`   |
+
+If customization is needed → compose, never rewrite.
+
+---
+
+### 3. Tailwind Usage Rules
+
+#### Allowed
+
+* Utility classes
+* Responsive variants
+* Dark mode variants
+* State variants (hover, focus, active)
+* Data/aria attribute styling
+* Tailwind animations
+
+#### Forbidden
+
+* Arbitrary pixel perfection hacks replacing tokens
+* Recreating spacing system outside Tailwind scale
+* Custom breakpoints outside config
+* Hardcoded colors instead of theme tokens
+
+---
+
+### 4. Component Composition Pattern
+
+Always prefer:
+
+```
+Flux Component → Tailwind utilities → Props → Slots
+```
+
+Never:
+
+```
+Custom HTML → Custom CSS → Override Flux → Patch Tailwind
+```
+
+---
+
+### 5. Creating New Components
+
+A new component is allowed ONLY if:
+
+1. It composes existing Flux primitives
+2. It adds business logic
+3. It does not replicate an existing Flux component
+
+Example:
+
+GOOD
+
+```
+UserCard = FluxCard + Avatar + Metadata
+```
+
+BAD
+
+```
+CustomButton replacing FluxButton
+```
+
+---
+
+### 6. Styling Hierarchy
+
+Priority order:
+
+1. Flux UI props
+2. Tailwind utilities
+3. Tailwind config extension
+4. CSS variables (tokens only)
+
+Custom CSS should never be used to fight Tailwind or Flux styles.
+
+---
+
+### 7. Theming
+
+Theme must be controlled through:
+
+* Tailwind config tokens
+* CSS variables consumed by Tailwind
+* Flux theme support
+
+No hardcoded colors.
+
+---
+
+### 8. Layout Rules
+
+All layout must use Tailwind utilities:
+
+Allowed:
+
+* flex
+* grid
+* gap
+* container
+* spacing scale
+
+Forbidden:
+
+* margin auto centering hacks outside Tailwind
+* absolute positioning for layout unless necessary
+* floats
+
+---
+
+## CRUD Table & Filtering Rules
+
+### General Philosophy
+
+All CRUD data tables must behave like a **data grid**, not a static table.
+
+Filtering controls belong inside the table header — never above, never below, never in a separate filter panel (unless explicitly advanced search).
+
+Tables must always be implemented using:
+
+* `FluxTable` (structure)
+* Tailwind utilities (layout + spacing)
+* Flux form components (filters)
+
+---
+
+### 1. Filter Placement
+
+Filters MUST be embedded in the column header.
+
+Never create a separate filter toolbar unless explicitly an "Advanced Filters" feature.
+
+---
+
+### 2. Header Structure
+
+Each header cell follows this structure:
+
+```
+Label
+Filter Control
+(optional sort indicator)
+```
+
+---
+
+### 3. Allowed Filter Components
+
+| Data Type | Required Filter           |
+| --------- | ------------------------- |
+| string    | FluxInput (text)          |
+| number    | FluxInput (numeric)       |
+| enum      | FluxSelect                |
+| boolean   | FluxSelect (Yes/No/All)   |
+| relation  | FluxSelect / async select |
+| date      | Range Date Selector       |
+| datetime  | Range Date Selector       |
+| currency  | min/max numeric           |
+| id        | exact match input         |
+
+---
+
+### 4. Date Columns — Mandatory Range Filter
+
+Every date/datetime column MUST provide a **range selector**.
+
+Never allow only single-date filtering.
+
+Required behavior:
+
+* Start date optional
+* End date optional
+* Inclusive range
+* Clear reset
+
+---
+
+### 5. Filter Interaction Rules
+
+Filtering must:
+
+* Update instantly or debounce (300–600ms)
+* Not require pressing a search button
+* Persist in URL query params
+* Survive refresh/navigation
+
+---
+
+### 6. Sorting Rules
+
+Click label toggles:
+
+```
+none → asc → desc → none
+```
+
+Sorting indicators belong in the same header as filters.
+
+---
+
+### 7. Pagination Behavior
+
+Changing filters or sorting resets page to 1.
+
+---
+
+### 8. Empty & Loading States
+
+| State   | Component         |
+| ------- | ----------------- |
+| Loading | FluxSkeleton rows |
+| Empty   | FluxEmpty         |
+| Error   | FluxAlert         |
+
+---
+
+### 9. Layout Rules
+
+Header cells must be vertically stacked:
+
+```
+flex flex-col gap-1
+```
+
+Never horizontal filter layouts inside headers.
+
+---
+
+## AI Assistant Behavior
+
+When generating UI code, the AI must:
+
+1. Always search for a Flux component first
+2. Use Tailwind utilities for spacing/layout
+3. Never introduce another UI library
+4. Never write raw CSS for styling
+5. Prefer composition over recreation
+6. Follow existing design tokens
+7. Add per-column filters in headers
+8. Add range filters for dates
+9. Persist filters in query params
+10. Reset pagination on filter change
+11. Use Flux loading/empty states
+
+---
+
+## Short Rule Summary
+
+> The UI layer is Tailwind + Flux UI only.
+> CRUD tables are interactive data grids.
+> Filters live in headers.
+> Date columns always use range filters.
+> Compose — never recreate.
+
+---
+
+You can now paste this directly into your `.cursor/rules.mdc` file.
