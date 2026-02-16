@@ -6,6 +6,7 @@
         <flux:heading size="xl" level="1">{{ __('job.edit') }}</flux:heading>
     </div>
 
+    <div class="flex flex-1 items-center justify-center">
     <flux:card class="max-w-2xl">
         <form wire:submit="save" class="space-y-6">
             <flux:field>
@@ -48,4 +49,5 @@
             </div>
         </form>
     </flux:card>
+    </div>
 </div>

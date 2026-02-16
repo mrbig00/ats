@@ -5,8 +5,8 @@
         </flux:button>
         <flux:heading size="xl" level="1">{{ __('job.create') }}</flux:heading>
     </div>
-
-    <flux:card class="max-w-2xl">
+    <div class="flex items-center justify-center">
+    <flux:card class="max-w-3xl">
         <form wire:submit="save" class="space-y-6">
             <flux:field>
                 <flux:label>{{ __('job.title') }}</flux:label>
@@ -48,4 +48,5 @@
             </div>
         </form>
     </flux:card>
+    </div>
 </div>
