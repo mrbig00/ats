@@ -2,8 +2,10 @@
 
 use App\Actions\Meetings\CreateInternalMeetingAction;
 use App\Actions\Meetings\DeleteMeetingAction;
+use App\Actions\Meetings\ListMeetingsAction;
 use App\Actions\Meetings\UpdateMeetingAction;
 use App\Data\Meetings\MeetingData;
+use App\Data\Meetings\MeetingFilterData;
 use App\Events\MeetingScheduled;
 use App\Models\CalendarEvent;
 use Carbon\CarbonImmutable;
@@ -72,4 +74,24 @@ test('delete meeting action removes calendar event', function () {
 
     expect(CalendarEvent::count())->toBe(0)
         ->and(CalendarEvent::find($event->id))->toBeNull();
+});
+
+test('list meetings action returns paginated meetings', function () {
+    CalendarEvent::factory()->count(3)->create([
+        'type' => CalendarEvent::TYPE_INTERNAL_MEETING,
+    ]);
+
+    $filters = new MeetingFilterData(
+        type: null,
+        search: null,
+        sortField: 'starts_at',
+        sortDirection: 'asc',
+        perPage: 10,
+    );
+
+    $action = app(ListMeetingsAction::class);
+    $paginator = $action->handle($filters);
+
+    expect($paginator->total())->toBe(3)
+        ->and($paginator->count())->toBe(3);
 });
