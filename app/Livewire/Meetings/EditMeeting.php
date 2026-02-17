@@ -62,7 +62,7 @@ class EditMeeting extends Component
 
         $this->dispatch('notify', __('meeting.updated'));
 
-        return $this->redirect(route('meetings.show', $this->event), navigate: true);
+        return $this->redirect(route('meetings.calendar'), navigate: true);
     }
 
     public function render()

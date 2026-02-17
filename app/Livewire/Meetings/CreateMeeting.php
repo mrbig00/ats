@@ -20,9 +20,16 @@ class CreateMeeting extends Component
     public function mount(): void
     {
         $this->authorize('create', \App\Models\CalendarEvent::class);
-        $defaultStart = now()->addDay()->setHour(10)->setMinute(0)->setSecond(0);
-        $this->startsAt = $defaultStart->format('Y-m-d\TH:i');
-        $this->endsAt = $defaultStart->addHour()->format('Y-m-d\TH:i');
+        $startsAtQuery = request()->query('starts_at');
+        $endsAtQuery = request()->query('ends_at');
+        if ($startsAtQuery && $endsAtQuery) {
+            $this->startsAt = CarbonImmutable::parse($startsAtQuery)->format('Y-m-d\TH:i');
+            $this->endsAt = CarbonImmutable::parse($endsAtQuery)->format('Y-m-d\TH:i');
+        } else {
+            $defaultStart = now()->addDay()->setHour(10)->setMinute(0)->setSecond(0);
+            $this->startsAt = $defaultStart->format('Y-m-d\TH:i');
+            $this->endsAt = $defaultStart->addHour()->format('Y-m-d\TH:i');
+        }
     }
 
     public function save(): mixed
@@ -50,7 +57,7 @@ class CreateMeeting extends Component
 
         $this->dispatch('notify', __('meeting.created'));
 
-        return $this->redirect(route('meetings.show', $event), navigate: true);
+        return $this->redirect(route('meetings.calendar'), navigate: true);
     }
 
     public function render()

@@ -64,3 +64,57 @@ select:focus[data-flux-control] {
 /* \[:where(&)\]:size-4 {
     @apply size-4;
 } */
+
+/* FullCalendar dark mode */
+.dark .fc {
+    --fc-border-color: theme(colors.zinc.600);
+    --fc-button-bg-color: theme(colors.zinc.600);
+    --fc-button-border-color: theme(colors.zinc.600);
+    --fc-button-hover-bg-color: theme(colors.zinc.500);
+    --fc-button-hover-border-color: theme(colors.zinc.500);
+    --fc-button-active-bg-color: theme(colors.zinc.700);
+    --fc-today-bg-color: theme(colors.zinc.800 / 0.5);
+    --fc-page-bg-color: transparent;
+    --fc-neutral-bg-color: theme(colors.zinc.800);
+    --fc-list-event-hover-bg-color: theme(colors.zinc.700);
+}
+
+.dark .fc-theme-standard td,
+.dark .fc-theme-standard th {
+    border-color: theme(colors.zinc.600);
+}
+
+.dark .fc-scrollgrid {
+    border-color: theme(colors.zinc.600);
+}
+
+.dark .fc .fc-button {
+    color: theme(colors.white);
+}
+
+.dark .fc .fc-col-header-cell-cushion,
+.dark .fc .fc-daygrid-day-number {
+    color: theme(colors.zinc.300);
+}
+
+.dark .fc .fc-daygrid-day.fc-day-today {
+    background-color: theme(colors.zinc.800 / 0.5);
+}
+
+.dark .fc-event {
+    border-color: theme(colors.zinc.600);
+}
+
+.dark .fc-event .fc-event-main {
+    color: theme(colors.white);
+}
+
+.dark .fc-event.fc-event--interview {
+    background-color: theme(colors.green.600);
+    border-color: theme(colors.green.500);
+}
+
+.dark .fc-event.fc-event--internal {
+    background-color: theme(colors.blue.600);
+    border-color: theme(colors.blue.500);
+}

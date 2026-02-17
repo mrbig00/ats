@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
 
@@ -26,6 +27,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        View::prependNamespace(
+            'laravel-exceptions-renderer',
+            resource_path('views/vendor/laravel-exceptions-renderer')
+        );
         $this->configureDefaults();
         $this->configureApiRateLimiting();
     }

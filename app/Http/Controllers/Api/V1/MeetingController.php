@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\V1;
 use App\Actions\Meetings\CreateInternalMeetingAction;
 use App\Actions\Meetings\DeleteMeetingAction;
 use App\Actions\Meetings\ListMeetingsAction;
+use App\Actions\Meetings\ListMeetingsForCalendarAction;
 use App\Actions\Meetings\UpdateMeetingAction;
 use App\Data\Meetings\MeetingFilterData;
 use App\Http\Controllers\Controller;
@@ -12,14 +13,16 @@ use App\Http\Requests\Api\V1\StoreMeetingRequest;
 use App\Http\Requests\Api\V1\UpdateMeetingRequest;
 use App\Http\Resources\Api\V1\MeetingResource;
 use App\Models\CalendarEvent;
+use Carbon\CarbonImmutable;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
-use Illuminate\Http\JsonResponse;
 
 class MeetingController extends Controller
 {
     public function __construct(
         private ListMeetingsAction $listMeetingsAction,
+        private ListMeetingsForCalendarAction $listMeetingsForCalendarAction,
         private CreateInternalMeetingAction $createMeetingAction,
         private UpdateMeetingAction $updateMeetingAction,
         private DeleteMeetingAction $deleteMeetingAction,
@@ -27,6 +30,18 @@ class MeetingController extends Controller
 
     public function index(Request $request): AnonymousResourceCollection
     {
+        if ($request->filled('start') && $request->filled('end')) {
+            $request->validate([
+                'start' => ['required', 'date'],
+                'end' => ['required', 'date', 'after_or_equal:start'],
+            ]);
+            $start = CarbonImmutable::parse($request->input('start'))->startOfDay();
+            $end = CarbonImmutable::parse($request->input('end'))->endOfDay();
+            $events = $this->listMeetingsForCalendarAction->handle($start, $end);
+
+            return MeetingResource::collection($events);
+        }
+
         $filters = new MeetingFilterData(
             type: $request->input('type'),
             search: $request->input('search'),

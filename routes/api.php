@@ -45,6 +45,6 @@ Route::prefix('v1')->middleware('throttle:api')->group(function (): void {
     })->name('api.v1.tokens.store');
 
     Route::middleware('auth:sanctum')->group(function (): void {
-        Route::apiResource('meetings', MeetingController::class);
+        Route::apiResource('meetings', MeetingController::class)->names('api.v1.meetings');
     });
-});
+})->name('api.v1');

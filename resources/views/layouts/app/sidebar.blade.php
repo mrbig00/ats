@@ -30,7 +30,7 @@
                     <flux:sidebar.item icon="clipboard-document-check" :href="route('todo.index')" :current="request()->routeIs('todo.*')" wire:navigate>
                         {{ __('nav.todo') }}
                     </flux:sidebar.item>
-                    <flux:sidebar.item icon="calendar-days" :href="route('meetings.index')" :current="request()->routeIs('meetings.*')" wire:navigate>
+                    <flux:sidebar.item icon="calendar-days" :href="route('meetings.calendar')" :current="request()->routeIs('meetings.*')" wire:navigate>
                         {{ __('nav.meetings') }}
                     </flux:sidebar.item>
                     <flux:sidebar.item icon="cog-6-tooth" :href="route('settings.index')" :current="request()->routeIs('settings.*')" wire:navigate>
