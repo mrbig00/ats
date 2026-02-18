@@ -19,6 +19,11 @@ class PositionRepository
         return Position::query()->where('status', 'open')->orderBy('title')->get();
     }
 
+    public function countOpen(): int
+    {
+        return Position::query()->where('status', 'open')->count();
+    }
+
     public function all(): Collection
     {
         return Position::query()->orderBy('title')->get();

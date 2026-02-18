@@ -36,6 +36,18 @@ class CandidateRepository
     }
 
     /**
+     * Count candidates not in "hired" or "rejected" pipeline stage (active in pipeline).
+     */
+    public function countActive(): int
+    {
+        return Candidate::query()
+            ->whereHas('pipelineStage', function (Builder $q) {
+                $q->whereNotIn('key', ['hired', 'rejected']);
+            })
+            ->count();
+    }
+
+    /**
      * @return LengthAwarePaginator<Candidate>
      */
     public function paginate(CandidateFilterData $filters): LengthAwarePaginator

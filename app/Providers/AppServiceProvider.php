@@ -2,11 +2,19 @@
 
 namespace App\Providers;
 
+use App\Events\CandidateCreated;
+use App\Events\CandidateHired;
+use App\Events\CandidateStageChanged;
+use App\Events\EmployeeTerminated;
+use App\Events\InterviewScheduled;
+use App\Events\MeetingScheduled;
+use App\Listeners\LogActivityEventListeners;
 use Carbon\CarbonImmutable;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
@@ -33,6 +41,18 @@ class AppServiceProvider extends ServiceProvider
         );
         $this->configureDefaults();
         $this->configureApiRateLimiting();
+        $this->registerActivityEventListeners();
+    }
+
+    private function registerActivityEventListeners(): void
+    {
+        $listeners = app(LogActivityEventListeners::class);
+        Event::listen(CandidateCreated::class, [$listeners, 'handleCandidateCreated']);
+        Event::listen(CandidateStageChanged::class, [$listeners, 'handleCandidateStageChanged']);
+        Event::listen(CandidateHired::class, [$listeners, 'handleCandidateHired']);
+        Event::listen(EmployeeTerminated::class, [$listeners, 'handleEmployeeTerminated']);
+        Event::listen(MeetingScheduled::class, [$listeners, 'handleMeetingScheduled']);
+        Event::listen(InterviewScheduled::class, [$listeners, 'handleInterviewScheduled']);
     }
 
     /**

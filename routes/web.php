@@ -1,6 +1,11 @@
 <?php
 
+use App\Actions\Dashboard\GetDashboardCalendarEventsAction;
 use App\Http\Controllers\CandidateDocumentController;
+use App\Http\Resources\Api\V1\DashboardCalendarResource;
+use Carbon\CarbonImmutable;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
 use App\Livewire\Candidates\CandidateList;
 use App\Livewire\Candidates\CandidateShow;
 use App\Livewire\Candidates\CreateCandidate;
@@ -20,16 +25,29 @@ use App\Livewire\Positions\CreatePosition;
 use App\Livewire\Positions\EditPosition;
 use App\Livewire\Positions\PositionList;
 use App\Livewire\Positions\PositionShow;
+use App\Livewire\Dashboard\Dashboard;
 use App\Livewire\Employees\EmployeeList;
 use App\Livewire\Employees\EmployeeShow;
-use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return view('welcome');
 })->name('home');
 
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::view('dashboard', 'dashboard')->name('dashboard');
+    Route::get('dashboard/calendar/events', function (Request $request) {
+        $request->validate([
+            'start' => ['required', 'date'],
+            'end' => ['required', 'date', 'after_or_equal:start'],
+        ]);
+        $request->user()->can('viewAny', \App\Models\CalendarEvent::class)
+            || abort(403);
+        $start = CarbonImmutable::parse($request->input('start'))->startOfDay();
+        $end = CarbonImmutable::parse($request->input('end'))->endOfDay();
+        $events = app(GetDashboardCalendarEventsAction::class)->handle($start, $end);
+
+        return DashboardCalendarResource::collection($events);
+    })->name('dashboard.calendar.events');
+    Route::livewire('dashboard', Dashboard::class)->name('dashboard');
     Route::livewire('candidates', CandidateList::class)->name('candidates.index');
     Route::livewire('candidates/create', CreateCandidate::class)->name('candidates.create');
     Route::livewire('candidates/{candidate}', CandidateShow::class)->name('candidates.show');

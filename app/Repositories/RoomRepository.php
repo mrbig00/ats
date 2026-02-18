@@ -4,9 +4,24 @@ namespace App\Repositories;
 
 use App\Data\Housing\RoomData;
 use App\Models\Room;
+use Carbon\CarbonImmutable;
 
 class RoomRepository
 {
+    /**
+     * Count rooms that are currently free (no active occupancy: no occupancy with ends_at null and starts_at <= today).
+     */
+    public function countFreeRooms(): int
+    {
+        $today = CarbonImmutable::today()->toDateString();
+
+        return Room::query()
+            ->whereDoesntHave('occupancies', function ($q) use ($today) {
+                $q->whereNull('ends_at')->where('starts_at', '<=', $today);
+            })
+            ->count();
+    }
+
     public function find(int $id): ?Room
     {
         return Room::query()->with(['apartment', 'occupancies.employee.person'])->find($id);

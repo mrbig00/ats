@@ -88,6 +88,23 @@ class CalendarEventRepository
             ->get();
     }
 
+    /**
+     * All event types for dashboard calendar (interviews, meetings, entry/exit dates, room free).
+     *
+     * @return \Illuminate\Database\Eloquent\Collection<int, CalendarEvent>
+     */
+    public function getEventsForDashboardCalendar(CarbonImmutable $start, CarbonImmutable $end): \Illuminate\Database\Eloquent\Collection
+    {
+        return CalendarEvent::query()
+            ->where('starts_at', '<', $end)
+            ->where(function (Builder $q) use ($start) {
+                $q->whereNull('ends_at')->orWhere('ends_at', '>', $start);
+            })
+            ->with(['candidate.person', 'room.apartment'])
+            ->orderBy('starts_at')
+            ->get();
+    }
+
     private function sortFieldColumn(string $field): string
     {
         return match ($field) {
@@ -151,5 +168,17 @@ class CalendarEventRepository
     public function find(int $id): ?CalendarEvent
     {
         return CalendarEvent::query()->with('candidate')->find($id);
+    }
+
+    /**
+     * Count interviews (calendar events type interview) in the given period.
+     */
+    public function countInterviewsInPeriod(CarbonImmutable $start, CarbonImmutable $end): int
+    {
+        return CalendarEvent::query()
+            ->where('type', CalendarEvent::TYPE_INTERVIEW)
+            ->where('starts_at', '>=', $start)
+            ->where('starts_at', '<=', $end)
+            ->count();
     }
 }

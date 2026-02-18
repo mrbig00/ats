@@ -118,3 +118,19 @@ select:focus[data-flux-control] {
     background-color: theme(colors.blue.600);
     border-color: theme(colors.blue.500);
 }
+
+/* Dashboard calendar event types */
+.dark .fc-event.fc-event--entry-date {
+    background-color: theme(colors.emerald.600);
+    border-color: theme(colors.emerald.500);
+}
+
+.dark .fc-event.fc-event--exit-date {
+    background-color: theme(colors.amber.600);
+    border-color: theme(colors.amber.500);
+}
+
+.dark .fc-event.fc-event--room-free {
+    background-color: theme(colors.purple.600);
+    border-color: theme(colors.purple.500);
+}

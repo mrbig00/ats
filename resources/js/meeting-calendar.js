@@ -4,6 +4,83 @@ import interactionPlugin from '@fullcalendar/interaction';
 import allLocales from '@fullcalendar/core/locales-all';
 
 let calendarInstance = null;
+let dashboardCalendarInstance = null;
+
+function initDashboardCalendar() {
+    const calendarEl = document.getElementById('dashboard-calendar');
+    if (!calendarEl) {
+        if (dashboardCalendarInstance) {
+            dashboardCalendarInstance.destroy();
+            dashboardCalendarInstance = null;
+        }
+        return;
+    }
+
+    if (dashboardCalendarInstance) {
+        dashboardCalendarInstance.destroy();
+        dashboardCalendarInstance = null;
+    }
+
+    const apiUrl = calendarEl.dataset.apiUrl;
+    const locale = calendarEl.dataset.locale || 'en';
+
+    dashboardCalendarInstance = new Calendar(calendarEl, {
+        plugins: [dayGridPlugin, interactionPlugin],
+        initialView: 'dayGridMonth',
+        locales: allLocales,
+        locale,
+        headerToolbar: {
+            start: 'prev,next today',
+            center: 'title',
+            end: '',
+        },
+        height: 'auto',
+        events: async (fetchInfo, successCallback, failureCallback) => {
+            try {
+                const params = new URLSearchParams({
+                    start: fetchInfo.startStr,
+                    end: fetchInfo.endStr,
+                });
+                const response = await fetch(`${apiUrl}?${params}`, {
+                    method: 'GET',
+                    headers: {
+                        Accept: 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                    },
+                    credentials: 'same-origin',
+                });
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                const data = await response.json();
+                const raw = data.data ?? data;
+                const events = Array.isArray(raw)
+                    ? raw.map((event) => ({
+                        id: event.id,
+                        title: event.title,
+                        start: event.starts_at,
+                        end: event.ends_at || null,
+                        url: event.url || null,
+                        extendedProps: {
+                            type: event.type || '',
+                        },
+                      }))
+                    : [];
+                successCallback(events);
+            } catch (err) {
+                console.warn('Dashboard calendar events fetch failed:', err);
+                successCallback([]);
+            }
+        },
+        eventDisplay: 'block',
+        eventDidMount: (info) => {
+            const type = (info.event.extendedProps.type || '').replace(/_/g, '-');
+            if (type) info.el.classList.add('fc-event--' + type);
+        },
+    });
+
+    dashboardCalendarInstance.render();
+}
 
 function initMeetingCalendar() {
     const calendarEl = document.getElementById('meeting-calendar');
@@ -91,5 +168,16 @@ function initMeetingCalendar() {
     calendarInstance.render();
 }
 
-document.addEventListener('livewire:navigated', initMeetingCalendar);
-document.addEventListener('DOMContentLoaded', initMeetingCalendar);
+function initAllCalendars() {
+    initMeetingCalendar();
+    initDashboardCalendar();
+}
+
+document.addEventListener('livewire:navigated', () => {
+    setTimeout(initAllCalendars, 150);
+});
+document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(initAllCalendars, 50);
+});
+
+window.initDashboardCalendar = initDashboardCalendar;
