@@ -19,21 +19,21 @@ class CandidatePolicy
 
     public function create(User $user): bool
     {
-        return true;
+        return $user->role->canEditContent();
     }
 
     public function update(User $user, Candidate $candidate): bool
     {
-        return true;
+        return $user->role->canEditContent();
     }
 
     public function delete(User $user, Candidate $candidate): bool
     {
-        return false;
+        return $user->role->isAdmin();
     }
 
     public function convertToEmployee(User $user, Candidate $candidate): bool
     {
-        return true;
+        return $user->role->canEditContent();
     }
 }

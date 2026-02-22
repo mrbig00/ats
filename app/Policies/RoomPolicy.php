@@ -19,16 +19,16 @@ class RoomPolicy
 
     public function create(User $user): bool
     {
-        return true;
+        return $user->role->canEditContent();
     }
 
     public function update(User $user, Room $room): bool
     {
-        return true;
+        return $user->role->canEditContent();
     }
 
     public function delete(User $user, Room $room): bool
     {
-        return true;
+        return $user->role->canEditContent();
     }
 }

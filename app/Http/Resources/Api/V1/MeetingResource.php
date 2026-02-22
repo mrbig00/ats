@@ -18,6 +18,8 @@ class MeetingResource extends JsonResource
             'notes' => $this->notes,
             'starts_at' => $this->starts_at?->toIso8601String(),
             'ends_at' => $this->ends_at?->toIso8601String(),
+            'url' => route('meetings.show', $this->id),
+            'all_day' => false,
             'candidate_id' => $this->candidate_id,
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),

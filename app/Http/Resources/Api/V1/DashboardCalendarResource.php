@@ -18,10 +18,20 @@ class DashboardCalendarResource extends JsonResource
             'notes' => $this->notes,
             'starts_at' => $this->starts_at?->toIso8601String(),
             'ends_at' => $this->ends_at?->toIso8601String(),
+            'all_day' => $this->isAllDayEvent(),
             'candidate_id' => $this->candidate_id,
             'room_id' => $this->room_id,
             'url' => $this->eventUrl(),
         ];
+    }
+
+    private function isAllDayEvent(): bool
+    {
+        return in_array($this->type, [
+            CalendarEvent::TYPE_ENTRY_DATE,
+            CalendarEvent::TYPE_EXIT_DATE,
+            CalendarEvent::TYPE_ROOM_FREE,
+        ], true);
     }
 
     private function eventUrl(): ?string

@@ -18,7 +18,7 @@
     </div>
 
     <div class="flex flex-1 items-center justify-center">
-        <div class="grid w-full max-w-2xl gap-6 lg:grid-cols-6">
+        <div class="grid w-full max-w-2xl lg:grid-cols-4">
         <div class="lg:col-span-2 space-y-6">
             <flux:card>
                 <flux:heading size="lg" class="mb-4">{{ __('employee.details') }}</flux:heading>

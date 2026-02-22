@@ -19,16 +19,16 @@ class OccupancyPolicy
 
     public function create(User $user): bool
     {
-        return true;
+        return $user->role->canEditContent();
     }
 
     public function update(User $user, Occupancy $occupancy): bool
     {
-        return true;
+        return $user->role->canEditContent();
     }
 
     public function delete(User $user, Occupancy $occupancy): bool
     {
-        return true;
+        return $user->role->canEditContent();
     }
 }

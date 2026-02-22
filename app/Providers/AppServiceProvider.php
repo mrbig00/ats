@@ -8,6 +8,7 @@ use App\Events\CandidateStageChanged;
 use App\Events\EmployeeTerminated;
 use App\Events\InterviewScheduled;
 use App\Events\MeetingScheduled;
+use App\Events\TaskCreated;
 use App\Listeners\LogActivityEventListeners;
 use Carbon\CarbonImmutable;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -53,6 +54,7 @@ class AppServiceProvider extends ServiceProvider
         Event::listen(EmployeeTerminated::class, [$listeners, 'handleEmployeeTerminated']);
         Event::listen(MeetingScheduled::class, [$listeners, 'handleMeetingScheduled']);
         Event::listen(InterviewScheduled::class, [$listeners, 'handleInterviewScheduled']);
+        Event::listen(TaskCreated::class, [$listeners, 'handleTaskCreated']);
     }
 
     /**

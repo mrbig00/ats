@@ -13,6 +13,8 @@ use App\Http\Requests\Api\V1\StoreMeetingRequest;
 use App\Http\Requests\Api\V1\UpdateMeetingRequest;
 use App\Http\Resources\Api\V1\MeetingResource;
 use App\Models\CalendarEvent;
+use App\Models\Task;
+use App\Repositories\TaskRepository;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -26,6 +28,7 @@ class MeetingController extends Controller
         private CreateInternalMeetingAction $createMeetingAction,
         private UpdateMeetingAction $updateMeetingAction,
         private DeleteMeetingAction $deleteMeetingAction,
+        private TaskRepository $taskRepository,
     ) {}
 
     public function index(Request $request): AnonymousResourceCollection
@@ -39,7 +42,26 @@ class MeetingController extends Controller
             $end = CarbonImmutable::parse($request->input('end'))->endOfDay();
             $events = $this->listMeetingsForCalendarAction->handle($start, $end);
 
-            return MeetingResource::collection($events);
+            $eventItems = MeetingResource::collection($events)->toArray($request)['data'] ?? [];
+            $taskItems = [];
+            $user = $request->user();
+            if ($user && $user->can('viewAny', Task::class)) {
+                $tasks = $this->taskRepository->getTasksForCalendar($start, $end, $user->id);
+                $taskItems = $tasks->map(function ($task) {
+                    $date = $task->due_date->format('Y-m-d');
+                    return [
+                        'id' => 'task-' . $task->id,
+                        'type' => 'task',
+                        'title' => $task->title,
+                        'starts_at' => $date . 'T00:00:00+00:00',
+                        'ends_at' => $date . 'T23:59:59+00:00',
+                        'url' => route('todo.edit', $task),
+                        'all_day' => true,
+                    ];
+                })->all();
+            }
+
+            return response()->json(['data' => array_values(array_merge($eventItems, $taskItems))]);
         }
 
         $filters = new MeetingFilterData(

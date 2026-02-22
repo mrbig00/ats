@@ -8,6 +8,7 @@ use App\Events\CandidateStageChanged;
 use App\Events\EmployeeTerminated;
 use App\Events\InterviewScheduled;
 use App\Events\MeetingScheduled;
+use App\Events\TaskCreated;
 use App\Models\ActivityEvent;
 use App\Repositories\ActivityEventRepository;
 use Carbon\CarbonImmutable;
@@ -88,6 +89,18 @@ class LogActivityEventListeners
             $event->calendarEventId,
             ['candidate_id' => $event->candidateId],
             Auth::id()
+        );
+    }
+
+    public function handleTaskCreated(TaskCreated $event): void
+    {
+        $this->activityEventRepository->log(
+            ActivityEvent::TYPE_TASK_CREATED,
+            CarbonImmutable::now(),
+            'task',
+            $event->taskId,
+            ['user_id' => $event->userId],
+            $event->userId
         );
     }
 }

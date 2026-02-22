@@ -19,16 +19,16 @@ class ApartmentPolicy
 
     public function create(User $user): bool
     {
-        return true;
+        return $user->role->canEditContent();
     }
 
     public function update(User $user, Apartment $apartment): bool
     {
-        return true;
+        return $user->role->canEditContent();
     }
 
     public function delete(User $user, Apartment $apartment): bool
     {
-        return true;
+        return $user->role->canEditContent();
     }
 }

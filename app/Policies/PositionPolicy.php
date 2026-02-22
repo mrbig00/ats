@@ -19,21 +19,21 @@ class PositionPolicy
 
     public function create(User $user): bool
     {
-        return true;
+        return $user->role->canEditContent();
     }
 
     public function update(User $user, Position $position): bool
     {
-        return true;
+        return $user->role->canEditContent();
     }
 
     public function delete(User $user, Position $position): bool
     {
-        return true;
+        return $user->role->canEditContent();
     }
 
     public function edit(User $user, Position $position): bool
     {
-        return $position->isOpen();
+        return $user->role->canEditContent() && $position->isOpen();
     }
 }

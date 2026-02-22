@@ -17,7 +17,7 @@
         <div
             id="meeting-calendar"
             class="fc p-4"
-            data-api-url="{{ url('/api/v1/meetings') }}"
+            data-api-url="{{ route('meetings.calendar.events') }}"
             data-meeting-show-base-url="{{ url('/meetings') }}"
             data-locale="{{ str_replace('_', '-', app()->getLocale()) }}"
             data-create-meeting-url="{{ auth()->user()?->can('create', \App\Models\CalendarEvent::class) ? route('meetings.create') : '' }}"

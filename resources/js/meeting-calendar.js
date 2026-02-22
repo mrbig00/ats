@@ -61,6 +61,7 @@ function initDashboardCalendar() {
                         start: event.starts_at,
                         end: event.ends_at || null,
                         url: event.url || null,
+                        allDay: event.all_day === true,
                         extendedProps: {
                             type: event.type || '',
                         },
@@ -76,6 +77,7 @@ function initDashboardCalendar() {
         eventDidMount: (info) => {
             const type = (info.event.extendedProps.type || '').replace(/_/g, '-');
             if (type) info.el.classList.add('fc-event--' + type);
+            if (info.event.allDay) info.el.classList.add('fc-event--all-day');
         },
     });
 
@@ -131,16 +133,20 @@ function initMeetingCalendar() {
                     throw new Error(`HTTP ${response.status}`);
                 }
                 const data = await response.json();
-                const events = (data.data ?? data).map((event) => ({
-                    id: event.id,
-                    title: event.title,
-                    start: event.starts_at,
-                    end: event.ends_at || null,
-                    url: `${meetingShowBaseUrl}/${event.id}`,
-                    extendedProps: {
-                        type: event.type,
-                    },
-                }));
+                const raw = data.data ?? data;
+                const events = Array.isArray(raw)
+                    ? raw.map((event) => ({
+                        id: event.id,
+                        title: event.title,
+                        start: event.starts_at,
+                        end: event.ends_at || null,
+                        url: event.url || `${meetingShowBaseUrl}/${event.id}`,
+                        allDay: event.all_day === true,
+                        extendedProps: {
+                            type: event.type || '',
+                        },
+                    }))
+                    : [];
                 successCallback(events);
             } catch (err) {
                 failureCallback(err);
@@ -157,11 +163,16 @@ function initMeetingCalendar() {
             }
         },
         eventDidMount: (info) => {
-            const type = info.event.extendedProps.type;
-            const isInterview = type === 'interview';
-            info.el.classList.add(
-                isInterview ? 'fc-event--interview' : 'fc-event--internal'
-            );
+            const type = (info.event.extendedProps.type || '').replace(/_/g, '-');
+            if (type === 'task') {
+                info.el.classList.add('fc-event--task');
+            } else {
+                const isInterview = type === 'interview';
+                info.el.classList.add(
+                    isInterview ? 'fc-event--interview' : 'fc-event--internal'
+                );
+            }
+            if (info.event.allDay) info.el.classList.add('fc-event--all-day');
         },
     });
 
