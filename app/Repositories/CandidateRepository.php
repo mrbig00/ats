@@ -2,6 +2,7 @@
 
 namespace App\Repositories;
 
+use App\Data\Archive\ArchiveListFilterData;
 use App\Data\Candidates\CandidateData;
 use App\Data\Candidates\CandidateFilterData;
 use App\Models\Candidate;
@@ -79,10 +80,51 @@ class CandidateRepository
             $query->whereDate('applied_at', '<=', $filters->appliedTo);
         }
 
+        if (! $filters->includeArchived) {
+            $query->where(function (Builder $q) {
+                $q->whereHas('pipelineStage', function (Builder $sq) {
+                    $sq->where('key', 'hired');
+                })->orWhereHas('position', function (Builder $pq) {
+                    $pq->activeRecruitmentSession();
+                });
+            });
+        }
+
         $direction = strtolower($filters->sortDirection) === 'desc' ? 'desc' : 'asc';
         $query->orderBy($this->sortFieldColumn($filters->sortField), $direction);
 
         return $query->paginate($filters->perPage);
+    }
+
+    /**
+     * Candidates on expired job postings who are not hired (stale pipeline).
+     *
+     * @return LengthAwarePaginator<Candidate>
+     */
+    public function paginateArchivedPipelineApplications(ArchiveListFilterData $filters): LengthAwarePaginator
+    {
+        $query = Candidate::query()
+            ->with(['person', 'position', 'pipelineStage'])
+            ->whereHas('position', function (Builder $pq) {
+                $pq->expiredRecruitmentSession();
+            })
+            ->whereHas('pipelineStage', function (Builder $sq) {
+                $sq->where('key', '!=', 'hired');
+            });
+
+        if ($filters->search !== null && $filters->search !== '') {
+            $search = '%'.addcslashes($filters->search, '%_').'%';
+            $query->whereHas('person', function (Builder $q) use ($search) {
+                $q->where('first_name', 'ilike', $search)
+                    ->orWhere('last_name', 'ilike', $search)
+                    ->orWhere('email', 'ilike', $search);
+            });
+        }
+
+        $direction = strtolower($filters->sortDirection) === 'desc' ? 'desc' : 'asc';
+        $query->orderBy($this->sortFieldColumn($filters->sortField), $direction);
+
+        return $query->paginate($filters->perPage, ['*'], $filters->pageName);
     }
 
     private function sortFieldColumn(string $field): string

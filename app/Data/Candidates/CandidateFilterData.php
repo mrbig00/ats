@@ -13,5 +13,6 @@ readonly class CandidateFilterData
         public string $sortField,
         public string $sortDirection,
         public int $perPage,
+        public bool $includeArchived = false,
     ) {}
 }

@@ -6,6 +6,10 @@
             </flux:button>
         </div>
 
+        <div class="flex flex-wrap items-center gap-3">
+            <flux:checkbox wire:model.live="includeArchived" :label="__('archive.include_archived')" />
+        </div>
+
         <div wire:loading.class="opacity-50 pointer-events-none" class="relative">
             <flux:table :paginate="$candidates">
                 <thead data-flux-columns>

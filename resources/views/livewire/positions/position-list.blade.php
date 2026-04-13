@@ -8,6 +8,10 @@
         @endcan
     </div>
 
+    <div class="flex flex-wrap items-center gap-3">
+        <flux:checkbox wire:model.live="includeArchived" :label="__('archive.include_archived')" />
+    </div>
+
     <div wire:loading.class="opacity-50 pointer-events-none" class="relative">
         <flux:table :paginate="$positions">
             <thead data-flux-columns>
@@ -60,7 +64,7 @@
                     </th>
                     <th class="py-2 px-3 first:ps-0 last:pe-0 text-start text-sm border-b border-zinc-800/10 dark:border-white/20 bg-zinc-50/50 dark:bg-zinc-800/30">
                         <div class="flex flex-col gap-1">
-                            <flux:select wire:model.live="statusFilter" :placeholder="__('job.filter_status')" class="min-w-full max-w-[180px]">
+                            <flux:select wire:model.live="statusFilter" :disabled="! $includeArchived" :placeholder="__('job.filter_status')" class="min-w-full max-w-[180px]">
                                 <flux:select.option value="open">{{ __('job.status_open') }}</flux:select.option>
                                 <flux:select.option value="closed">{{ __('job.status_closed') }}</flux:select.option>
                             </flux:select>
