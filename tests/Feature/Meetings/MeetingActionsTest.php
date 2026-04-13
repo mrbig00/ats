@@ -9,10 +9,7 @@ use App\Data\Meetings\MeetingFilterData;
 use App\Events\MeetingScheduled;
 use App\Models\CalendarEvent;
 use Carbon\CarbonImmutable;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
-
-uses(RefreshDatabase::class);
 
 test('create internal meeting action creates calendar event and dispatches event', function () {
     Event::fake([MeetingScheduled::class]);

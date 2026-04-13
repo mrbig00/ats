@@ -5,9 +5,6 @@ use App\Data\Task\TaskData;
 use App\Models\Task;
 use App\Models\User;
 use Carbon\CarbonImmutable;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-
-uses(RefreshDatabase::class);
 
 test('update task action updates task', function () {
     $user = User::factory()->create();

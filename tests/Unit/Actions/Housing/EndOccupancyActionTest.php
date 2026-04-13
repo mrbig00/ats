@@ -8,10 +8,7 @@ use Carbon\CarbonImmutable;
 use Database\Factories\EmployeeFactory;
 use Database\Factories\OccupancyFactory;
 use Database\Factories\RoomFactory;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
-
-uses(RefreshDatabase::class);
 
 test('end occupancy action sets ends_at creates calendar event and dispatches event', function () {
     Event::fake([OccupancyEnded::class]);

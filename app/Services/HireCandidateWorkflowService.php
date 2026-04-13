@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Actions\Calendar\SyncCalendarItemAction;
 use App\Data\Candidates\ConvertCandidateToEmployeeData;
 use App\Events\CandidateHired;
 use App\Models\Candidate;
@@ -19,6 +20,7 @@ class HireCandidateWorkflowService
         private EmployeeRepository $employeeRepository,
         private PipelineStageRepository $pipelineStageRepository,
         private CalendarEventRepository $calendarEventRepository,
+        private SyncCalendarItemAction $syncCalendarItemAction,
     ) {}
 
     public function handle(ConvertCandidateToEmployeeData $data): Employee
@@ -46,7 +48,8 @@ class HireCandidateWorkflowService
             $this->candidateRepository->updateStage($candidate, $hiredStage->id);
 
             $title = __('calendar.entry_date_for', ['name' => $candidate->person->fullName()]);
-            $this->calendarEventRepository->createEntryDateEvent($title, $data->entryDate);
+            $entryEvent = $this->calendarEventRepository->createEntryDateEvent($title, $data->entryDate);
+            $this->syncCalendarItemAction->syncFromModel($entryEvent);
 
             CandidateHired::dispatch($candidate->id, $employee->id, $candidate->person_id);
 

@@ -3,9 +3,6 @@
 use App\Actions\Housing\CreateApartmentAction;
 use App\Data\Housing\ApartmentData;
 use App\Models\Apartment;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-
-uses(RefreshDatabase::class);
 
 test('create apartment action creates apartment', function () {
     $data = new ApartmentData(

@@ -8,10 +8,7 @@ use App\Services\TerminateEmployeeWorkflowService;
 use Carbon\CarbonImmutable;
 use Database\Factories\EmployeeFactory;
 use Database\Factories\OccupancyFactory;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
-
-uses(RefreshDatabase::class);
 
 test('terminate workflow updates employee status and exit date creates exit event ends occupancies and dispatches event', function () {
     Event::fake([EmployeeTerminated::class]);

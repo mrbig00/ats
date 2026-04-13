@@ -6,10 +6,7 @@ use App\Events\TaskCreated;
 use App\Models\Task;
 use App\Models\User;
 use Carbon\CarbonImmutable;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
-
-uses(RefreshDatabase::class);
 
 test('create task action creates task and dispatches TaskCreated event', function () {
     Event::fake([TaskCreated::class]);

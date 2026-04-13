@@ -9,10 +9,7 @@ use App\Models\PipelineStage;
 use App\Models\Position;
 use Carbon\CarbonImmutable;
 use Database\Seeders\PipelineStageSeeder;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
-
-uses(RefreshDatabase::class);
 
 beforeEach(function () {
     $this->seed(PipelineStageSeeder::class);

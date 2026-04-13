@@ -8,10 +8,7 @@ use Carbon\CarbonImmutable;
 use Database\Factories\ApartmentFactory;
 use Database\Factories\EmployeeFactory;
 use Database\Factories\RoomFactory;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
-
-uses(RefreshDatabase::class);
 
 test('create occupancy action creates occupancy and dispatches event', function () {
     Event::fake([OccupancyCreated::class]);

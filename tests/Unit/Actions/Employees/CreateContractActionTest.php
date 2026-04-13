@@ -4,9 +4,6 @@ use App\Actions\Employees\CreateContractAction;
 use App\Data\Employees\ContractData;
 use Carbon\CarbonImmutable;
 use Database\Factories\EmployeeFactory;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-
-uses(RefreshDatabase::class);
 
 test('create contract action persists contract', function () {
     $employee = EmployeeFactory::new()->create();

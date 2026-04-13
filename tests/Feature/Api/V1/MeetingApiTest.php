@@ -2,13 +2,10 @@
 
 use App\Models\CalendarEvent;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Sanctum\Sanctum;
 
-uses(RefreshDatabase::class);
-
 beforeEach(function (): void {
-    $this->user = User::factory()->create();
+    $this->user = User::factory()->hr()->create();
 });
 
 test('meetings index requires authentication', function (): void {

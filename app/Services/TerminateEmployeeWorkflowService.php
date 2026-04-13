@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Actions\Calendar\SyncCalendarItemAction;
 use App\Actions\Housing\EndOccupancyAction;
 use App\Data\Employees\TerminateEmployeeData;
 use App\Events\EmployeeTerminated;
@@ -19,6 +20,7 @@ class TerminateEmployeeWorkflowService
         private CalendarEventRepository $calendarEventRepository,
         private OccupancyRepository $occupancyRepository,
         private EndOccupancyAction $endOccupancyAction,
+        private SyncCalendarItemAction $syncCalendarItemAction,
     ) {}
 
     public function handle(TerminateEmployeeData $data): Employee
@@ -41,7 +43,8 @@ class TerminateEmployeeWorkflowService
             $employee->load('person');
 
             $title = __('calendar.exit_date_for', ['name' => $employee->person->fullName()]);
-            $this->calendarEventRepository->createExitDateEvent($title, $data->exitDate);
+            $exitEvent = $this->calendarEventRepository->createExitDateEvent($title, $data->exitDate);
+            $this->syncCalendarItemAction->syncFromModel($exitEvent);
 
             $activeOccupancies = $this->occupancyRepository->getActiveByEmployeeId($employee->id);
             $exitDateCarbon = CarbonImmutable::parse($data->exitDate->toDateString());

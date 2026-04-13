@@ -2,6 +2,7 @@
 
 namespace App\Actions\Housing;
 
+use App\Actions\Calendar\SyncCalendarItemAction;
 use App\Events\OccupancyEnded;
 use App\Models\Occupancy;
 use App\Repositories\CalendarEventRepository;
@@ -13,6 +14,7 @@ class EndOccupancyAction
     public function __construct(
         private OccupancyRepository $occupancyRepository,
         private CalendarEventRepository $calendarEventRepository,
+        private SyncCalendarItemAction $syncCalendarItemAction,
     ) {}
 
     public function handle(Occupancy $occupancy, CarbonImmutable $endsAt): Occupancy
@@ -32,11 +34,12 @@ class EndOccupancyAction
             'room' => $occupancy->room->name,
             'date' => $endsAt->isoFormat('L'),
         ]);
-        $this->calendarEventRepository->createRoomFreeEvent(
+        $roomFreeEvent = $this->calendarEventRepository->createRoomFreeEvent(
             $title,
             $occupancy->room_id,
             $endsAt,
         );
+        $this->syncCalendarItemAction->syncFromModel($roomFreeEvent);
 
         OccupancyEnded::dispatch($occupancy->id, $occupancy->room_id, $occupancy->employee_id);
 
