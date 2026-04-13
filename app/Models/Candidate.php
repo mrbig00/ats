@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\GermanLanguageLevel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -17,12 +18,22 @@ class Candidate extends Model
         'pipeline_stage_id',
         'source',
         'applied_at',
+        'nationality',
+        'driving_license_category',
+        'has_own_car',
+        'german_level',
+        'available_from',
+        'housing_needed',
     ];
 
     protected function casts(): array
     {
         return [
             'applied_at' => 'datetime',
+            'has_own_car' => 'boolean',
+            'housing_needed' => 'boolean',
+            'available_from' => 'date',
+            'german_level' => GermanLanguageLevel::class,
         ];
     }
 

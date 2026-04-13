@@ -2,6 +2,7 @@
 
 namespace App\Data\Candidates;
 
+use App\Enums\GermanLanguageLevel;
 use Carbon\CarbonImmutable;
 
 readonly class CandidateData
@@ -12,5 +13,11 @@ readonly class CandidateData
         public int $pipelineStageId,
         public ?string $source,
         public ?CarbonImmutable $appliedAt,
+        public ?string $nationality = null,
+        public ?string $drivingLicenseCategory = null,
+        public ?bool $hasOwnCar = null,
+        public ?GermanLanguageLevel $germanLevel = null,
+        public ?CarbonImmutable $availableFrom = null,
+        public ?bool $housingNeeded = null,
     ) {}
 }

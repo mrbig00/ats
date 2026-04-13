@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\V1\CalendarItemsController;
+use App\Http\Controllers\Api\V1\CandidatesController;
 use App\Http\Controllers\Api\V1\DashboardCalendarController;
 use App\Http\Controllers\Api\V1\MeetingController;
 use Illuminate\Http\Request;
@@ -49,6 +50,7 @@ Route::prefix('v1')->middleware('throttle:api')->group(function (): void {
     Route::middleware('auth:sanctum')->group(function (): void {
         Route::get('calendar/items', [CalendarItemsController::class, 'index'])->name('api.v1.calendar.items');
         Route::apiResource('meetings', MeetingController::class)->names('api.v1.meetings');
+        Route::apiResource('candidates', CandidatesController::class)->only(['store', 'show', 'update'])->names('api.v1.candidates');
         Route::get('dashboard/calendar', [DashboardCalendarController::class, 'index'])->name('api.v1.dashboard.calendar');
     });
 })->name('api.v1');

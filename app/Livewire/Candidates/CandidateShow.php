@@ -4,7 +4,9 @@ namespace App\Livewire\Candidates;
 
 use App\Actions\Candidates\AddCandidateNoteAction;
 use App\Actions\Candidates\ScheduleInterviewAction;
+use App\Actions\Candidates\UpdateCandidateProfileAction;
 use App\Data\Candidates\CandidateNoteData;
+use App\Data\Candidates\UpdateCandidateProfileData;
 use App\Data\Candidates\InterviewData;
 use App\Data\Candidates\UpdateCandidateStageData;
 use App\Actions\Candidates\UpdateCandidateStageAction;
@@ -14,7 +16,9 @@ use App\Repositories\PipelineStageRepository;
 use App\Services\HireCandidateWorkflowService;
 use App\Data\Candidates\ConvertCandidateToEmployeeData;
 use Carbon\CarbonImmutable;
+use App\Enums\GermanLanguageLevel;
 use App\Repositories\CandidateDocumentRepository;
+use App\Support\CandidateProfileValidationRules;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Component;
@@ -48,12 +52,82 @@ class CandidateShow extends Component
 
     public string $interviewNotes = '';
 
+    public string $nationality = '';
+
+    public string $driving_license_category = '';
+
+    public string $has_own_car = '';
+
+    public string $german_level = '';
+
+    public ?string $available_from = null;
+
+    public string $housing_needed = '';
+
     public function mount(Candidate $candidate): void
     {
         $this->authorize('view', $candidate);
         $this->candidate = $candidate->load(['person.employee', 'position', 'pipelineStage', 'notes.user', 'documents', 'interviews']);
         $this->newStageId = $candidate->pipeline_stage_id;
         $this->convertEntryDate = now()->format('Y-m-d');
+        $this->syncProfileFieldsFromCandidate();
+    }
+
+    public function saveProfile(): void
+    {
+        $this->authorize('update', $this->candidate);
+
+        $validated = $this->validate(
+            CandidateProfileValidationRules::livewireOptionalProfileRules(),
+            [],
+            CandidateProfileValidationRules::attributeNames(),
+        );
+
+        $attributes = [
+            'nationality' => ($validated['nationality'] ?? '') !== '' ? $validated['nationality'] : null,
+            'driving_license_category' => ($validated['driving_license_category'] ?? '') !== '' ? $validated['driving_license_category'] : null,
+            'has_own_car' => $this->triStateToBool($validated['has_own_car'] ?? ''),
+            'german_level' => ($validated['german_level'] ?? '') !== '' ? $validated['german_level'] : null,
+            'available_from' => ($validated['available_from'] ?? '') !== '' ? $validated['available_from'] : null,
+            'housing_needed' => $this->triStateToBool($validated['housing_needed'] ?? ''),
+        ];
+
+        app(UpdateCandidateProfileAction::class)->handle(
+            $this->candidate,
+            new UpdateCandidateProfileData($attributes),
+        );
+
+        $this->candidate->refresh()->load(['person.employee', 'position', 'pipelineStage', 'notes.user', 'documents', 'interviews']);
+        $this->syncProfileFieldsFromCandidate();
+        $this->dispatch('notify', __('candidate.profile_updated'));
+    }
+
+    private function syncProfileFieldsFromCandidate(): void
+    {
+        $c = $this->candidate;
+        $this->nationality = $c->nationality ?? '';
+        $this->driving_license_category = $c->driving_license_category ?? '';
+        $this->has_own_car = match ($c->has_own_car) {
+            true => '1',
+            false => '0',
+            default => '',
+        };
+        $this->german_level = $c->german_level?->value ?? '';
+        $this->available_from = $c->available_from?->format('Y-m-d');
+        $this->housing_needed = match ($c->housing_needed) {
+            true => '1',
+            false => '0',
+            default => '',
+        };
+    }
+
+    private function triStateToBool(string $value): ?bool
+    {
+        return match ($value) {
+            '1' => true,
+            '0' => false,
+            default => null,
+        };
     }
 
     public function addNote(): void
@@ -194,6 +268,7 @@ class CandidateShow extends Component
     {
         return view('livewire.candidates.candidate-show', [
             'pipelineStages' => $this->pipelineStages,
+            'germanLevels' => GermanLanguageLevel::cases(),
         ])->title($this->candidate->person->fullName());
     }
 }

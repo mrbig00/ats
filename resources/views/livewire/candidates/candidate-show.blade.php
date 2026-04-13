@@ -55,8 +55,92 @@
                             <flux:text class="text-zinc-500 dark:text-zinc-400">{{ __('candidate.applied_at') }}</flux:text>
                             <flux:text>{{ $candidate->applied_at?->isoFormat('L') ?? '—' }}</flux:text>
                         </div>
+                        @cannot('update', $candidate)
+                            <div>
+                                <flux:text class="text-zinc-500 dark:text-zinc-400">{{ __('candidate.nationality') }}</flux:text>
+                                <flux:text>{{ $candidate->nationality ?? '—' }}</flux:text>
+                            </div>
+                            <div>
+                                <flux:text class="text-zinc-500 dark:text-zinc-400">{{ __('candidate.driving_license_category') }}</flux:text>
+                                <flux:text>{{ $candidate->driving_license_category ?? '—' }}</flux:text>
+                            </div>
+                            <div>
+                                <flux:text class="text-zinc-500 dark:text-zinc-400">{{ __('candidate.has_own_car') }}</flux:text>
+                                <flux:text>@if($candidate->has_own_car === null){{ '—' }}@elseif($candidate->has_own_car){{ __('common.yes') }}@else{{ __('common.no') }}@endif</flux:text>
+                            </div>
+                            <div>
+                                <flux:text class="text-zinc-500 dark:text-zinc-400">{{ __('candidate.german_level') }}</flux:text>
+                                <flux:text>{{ $candidate->german_level?->label() ?? '—' }}</flux:text>
+                            </div>
+                            <div>
+                                <flux:text class="text-zinc-500 dark:text-zinc-400">{{ __('candidate.available_from') }}</flux:text>
+                                <flux:text>{{ $candidate->available_from?->isoFormat('L') ?? '—' }}</flux:text>
+                            </div>
+                            <div>
+                                <flux:text class="text-zinc-500 dark:text-zinc-400">{{ __('candidate.housing_needed') }}</flux:text>
+                                <flux:text>@if($candidate->housing_needed === null){{ '—' }}@elseif($candidate->housing_needed){{ __('common.yes') }}@else{{ __('common.no') }}@endif</flux:text>
+                            </div>
+                        @endcannot
                     </dl>
                 </flux:card>
+
+                @can('update', $candidate)
+                    <flux:card>
+                        <flux:heading size="lg" class="mb-4">{{ __('candidate.profile_section') }}</flux:heading>
+                        <form wire:submit="saveProfile" class="space-y-4">
+                            <div class="grid gap-4 sm:grid-cols-2">
+                                <flux:field>
+                                    <flux:label>{{ __('candidate.nationality') }}</flux:label>
+                                    <flux:input wire:model="nationality" type="text" />
+                                    <flux:error name="nationality" />
+                                </flux:field>
+                                <flux:field>
+                                    <flux:label>{{ __('candidate.driving_license_category') }}</flux:label>
+                                    <flux:input wire:model="driving_license_category" type="text" />
+                                    <flux:error name="driving_license_category" />
+                                </flux:field>
+                            </div>
+                            <div class="grid gap-4 sm:grid-cols-2">
+                                <flux:field>
+                                    <flux:label>{{ __('candidate.has_own_car') }}</flux:label>
+                                    <flux:select wire:model="has_own_car">
+                                        <flux:select.option value="">{{ __('common.not_specified') }}</flux:select.option>
+                                        <flux:select.option value="1">{{ __('common.yes') }}</flux:select.option>
+                                        <flux:select.option value="0">{{ __('common.no') }}</flux:select.option>
+                                    </flux:select>
+                                    <flux:error name="has_own_car" />
+                                </flux:field>
+                                <flux:field>
+                                    <flux:label>{{ __('candidate.german_level') }}</flux:label>
+                                    <flux:select wire:model="german_level">
+                                        <flux:select.option value="">{{ __('common.not_specified') }}</flux:select.option>
+                                        @foreach ($germanLevels as $level)
+                                            <flux:select.option :value="$level->value">{{ $level->label() }}</flux:select.option>
+                                        @endforeach
+                                    </flux:select>
+                                    <flux:error name="german_level" />
+                                </flux:field>
+                            </div>
+                            <div class="grid gap-4 sm:grid-cols-2">
+                                <flux:field>
+                                    <flux:label>{{ __('candidate.available_from') }}</flux:label>
+                                    <flux:input wire:model="available_from" type="date" />
+                                    <flux:error name="available_from" />
+                                </flux:field>
+                                <flux:field>
+                                    <flux:label>{{ __('candidate.housing_needed') }}</flux:label>
+                                    <flux:select wire:model="housing_needed">
+                                        <flux:select.option value="">{{ __('common.not_specified') }}</flux:select.option>
+                                        <flux:select.option value="1">{{ __('common.yes') }}</flux:select.option>
+                                        <flux:select.option value="0">{{ __('common.no') }}</flux:select.option>
+                                    </flux:select>
+                                    <flux:error name="housing_needed" />
+                                </flux:field>
+                            </div>
+                            <flux:button type="submit" size="sm" variant="primary" wire:loading.attr="disabled">{{ __('candidate.save_profile') }}</flux:button>
+                        </form>
+                    </flux:card>
+                @endcan
 
                 <flux:card>
                     <flux:heading size="lg" class="mb-4">{{ __('candidate.notes') }}</flux:heading>

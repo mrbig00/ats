@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\GermanLanguageLevel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -22,6 +23,12 @@ class Employee extends Model
         'status',
         'entry_date',
         'exit_date',
+        'nationality',
+        'driving_license_category',
+        'has_own_car',
+        'german_level',
+        'available_from',
+        'housing_needed',
     ];
 
     protected function casts(): array
@@ -29,6 +36,10 @@ class Employee extends Model
         return [
             'entry_date' => 'date',
             'exit_date' => 'date',
+            'has_own_car' => 'boolean',
+            'housing_needed' => 'boolean',
+            'available_from' => 'date',
+            'german_level' => GermanLanguageLevel::class,
         ];
     }
 

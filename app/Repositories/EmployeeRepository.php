@@ -3,6 +3,7 @@
 namespace App\Repositories;
 
 use App\Data\Employees\EmployeeFilterData;
+use App\Data\Employees\UpdateEmployeeProfileData;
 use App\Models\Employee;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -95,6 +96,13 @@ class EmployeeRepository
         $employee->update(['entry_date' => $entryDate->toDateString()]);
 
         return $employee->fresh();
+    }
+
+    public function applyProfilePatch(Employee $employee, UpdateEmployeeProfileData $data): Employee
+    {
+        $employee->update($data->attributes);
+
+        return $employee->fresh() ?? $employee;
     }
 
     public function countActive(): int

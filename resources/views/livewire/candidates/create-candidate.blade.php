@@ -71,6 +71,59 @@
                     </flux:field>
                 </div>
 
+                <flux:separator />
+
+                <flux:heading size="lg">{{ __('candidate.profile_section') }}</flux:heading>
+                <div class="grid gap-4 sm:grid-cols-2">
+                    <flux:field>
+                        <flux:label>{{ __('candidate.nationality') }}</flux:label>
+                        <flux:input wire:model="nationality" type="text" />
+                        <flux:error name="nationality" />
+                    </flux:field>
+                    <flux:field>
+                        <flux:label>{{ __('candidate.driving_license_category') }}</flux:label>
+                        <flux:input wire:model="driving_license_category" type="text" />
+                        <flux:error name="driving_license_category" />
+                    </flux:field>
+                </div>
+                <div class="grid gap-4 sm:grid-cols-2">
+                    <flux:field>
+                        <flux:label>{{ __('candidate.has_own_car') }}</flux:label>
+                        <flux:select wire:model="has_own_car">
+                            <flux:select.option value="">{{ __('common.not_specified') }}</flux:select.option>
+                            <flux:select.option value="1">{{ __('common.yes') }}</flux:select.option>
+                            <flux:select.option value="0">{{ __('common.no') }}</flux:select.option>
+                        </flux:select>
+                        <flux:error name="has_own_car" />
+                    </flux:field>
+                    <flux:field>
+                        <flux:label>{{ __('candidate.german_level') }}</flux:label>
+                        <flux:select wire:model="german_level">
+                            <flux:select.option value="">{{ __('common.not_specified') }}</flux:select.option>
+                            @foreach ($germanLevels as $level)
+                                <flux:select.option :value="$level->value">{{ $level->label() }}</flux:select.option>
+                            @endforeach
+                        </flux:select>
+                        <flux:error name="german_level" />
+                    </flux:field>
+                </div>
+                <div class="grid gap-4 sm:grid-cols-2">
+                    <flux:field>
+                        <flux:label>{{ __('candidate.available_from') }}</flux:label>
+                        <flux:input wire:model="available_from" type="date" />
+                        <flux:error name="available_from" />
+                    </flux:field>
+                    <flux:field>
+                        <flux:label>{{ __('candidate.housing_needed') }}</flux:label>
+                        <flux:select wire:model="housing_needed">
+                            <flux:select.option value="">{{ __('common.not_specified') }}</flux:select.option>
+                            <flux:select.option value="1">{{ __('common.yes') }}</flux:select.option>
+                            <flux:select.option value="0">{{ __('common.no') }}</flux:select.option>
+                        </flux:select>
+                        <flux:error name="housing_needed" />
+                    </flux:field>
+                </div>
+
                 <div class="flex gap-2">
                     <flux:button type="submit" variant="primary" wire:loading.attr="disabled">
                         {{ __('common.save') }}

@@ -6,11 +6,15 @@ use App\Actions\Employees\CreateContractAction;
 use App\Actions\Employees\TerminateEmployeeWorkflowService;
 use App\Actions\Employees\UpdateContractAction;
 use App\Actions\Employees\UpdateEmployeeAction;
+use App\Actions\Employees\UpdateEmployeeProfileAction;
 use App\Data\Employees\ContractData;
 use App\Data\Employees\TerminateEmployeeData;
 use App\Data\Employees\UpdateContractData;
 use App\Data\Employees\UpdateEmployeeData;
+use App\Data\Employees\UpdateEmployeeProfileData;
+use App\Enums\GermanLanguageLevel;
 use App\Models\Employee;
+use App\Support\CandidateProfileValidationRules;
 use App\Repositories\ContractRepository;
 use App\Repositories\OccupancyRepository;
 use Carbon\CarbonImmutable;
@@ -50,12 +54,82 @@ class EmployeeShow extends Component
 
     public ?string $editContractNotes = null;
 
+    public string $nationality = '';
+
+    public string $driving_license_category = '';
+
+    public string $has_own_car = '';
+
+    public string $german_level = '';
+
+    public ?string $available_from = null;
+
+    public string $housing_needed = '';
+
     public function mount(Employee $employee): void
     {
         $this->authorize('view', $employee);
         $this->employee = $employee->load(['person', 'occupancies.room.apartment', 'contracts']);
         $this->entryDate = $this->employee->entry_date?->format('Y-m-d') ?? '';
         $this->terminateExitDate = now()->format('Y-m-d');
+        $this->syncProfileFieldsFromEmployee();
+    }
+
+    public function saveProfile(): void
+    {
+        $this->authorize('update', $this->employee);
+
+        $validated = $this->validate(
+            CandidateProfileValidationRules::livewireOptionalProfileRules(),
+            [],
+            CandidateProfileValidationRules::attributeNames(),
+        );
+
+        $attributes = [
+            'nationality' => ($validated['nationality'] ?? '') !== '' ? $validated['nationality'] : null,
+            'driving_license_category' => ($validated['driving_license_category'] ?? '') !== '' ? $validated['driving_license_category'] : null,
+            'has_own_car' => $this->triStateToBool($validated['has_own_car'] ?? ''),
+            'german_level' => ($validated['german_level'] ?? '') !== '' ? $validated['german_level'] : null,
+            'available_from' => ($validated['available_from'] ?? '') !== '' ? $validated['available_from'] : null,
+            'housing_needed' => $this->triStateToBool($validated['housing_needed'] ?? ''),
+        ];
+
+        app(UpdateEmployeeProfileAction::class)->handle(
+            $this->employee,
+            new UpdateEmployeeProfileData($attributes),
+        );
+
+        $this->employee->refresh()->load(['person', 'occupancies.room.apartment', 'contracts']);
+        $this->syncProfileFieldsFromEmployee();
+        $this->dispatch('notify', __('employee.profile_updated'));
+    }
+
+    private function syncProfileFieldsFromEmployee(): void
+    {
+        $e = $this->employee;
+        $this->nationality = $e->nationality ?? '';
+        $this->driving_license_category = $e->driving_license_category ?? '';
+        $this->has_own_car = match ($e->has_own_car) {
+            true => '1',
+            false => '0',
+            default => '',
+        };
+        $this->german_level = $e->german_level?->value ?? '';
+        $this->available_from = $e->available_from?->format('Y-m-d');
+        $this->housing_needed = match ($e->housing_needed) {
+            true => '1',
+            false => '0',
+            default => '',
+        };
+    }
+
+    private function triStateToBool(string $value): ?bool
+    {
+        return match ($value) {
+            '1' => true,
+            '0' => false,
+            default => null,
+        };
     }
 
     public function saveEntryDate(): void
@@ -209,6 +283,7 @@ class EmployeeShow extends Component
     {
         return view('livewire.employees.employee-show', [
             'activeOccupancies' => $this->activeOccupancies,
+            'germanLevels' => GermanLanguageLevel::cases(),
         ])->title($this->employee->person->fullName());
     }
 }

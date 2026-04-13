@@ -26,6 +26,12 @@ class CreateCandidateAction
             pipelineStageId: $candidateData->pipelineStageId,
             source: $candidateData->source,
             appliedAt: $candidateData->appliedAt,
+            nationality: $candidateData->nationality,
+            drivingLicenseCategory: $candidateData->drivingLicenseCategory,
+            hasOwnCar: $candidateData->hasOwnCar,
+            germanLevel: $candidateData->germanLevel,
+            availableFrom: $candidateData->availableFrom,
+            housingNeeded: $candidateData->housingNeeded,
         ));
 
         CandidateCreated::dispatch($candidate->id, $person->id, $candidateData->positionId);

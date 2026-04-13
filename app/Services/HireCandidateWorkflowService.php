@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Actions\Calendar\SyncCalendarItemAction;
 use App\Data\Candidates\ConvertCandidateToEmployeeData;
+use App\Data\Employees\UpdateEmployeeProfileData;
 use App\Events\CandidateHired;
 use App\Models\Candidate;
 use App\Models\Employee;
@@ -44,6 +45,22 @@ class HireCandidateWorkflowService
                 $candidate->person_id,
                 $data->entryDate,
             );
+
+            $profileAttributes = [
+                'nationality' => $candidate->nationality,
+                'driving_license_category' => $candidate->driving_license_category,
+                'has_own_car' => $candidate->has_own_car,
+                'german_level' => $candidate->german_level?->value,
+                'available_from' => $candidate->available_from?->toDateString(),
+                'housing_needed' => $candidate->housing_needed,
+            ];
+            if (array_filter($profileAttributes, static fn ($v) => $v !== null) !== []) {
+                $this->employeeRepository->applyProfilePatch(
+                    $employee,
+                    new UpdateEmployeeProfileData($profileAttributes),
+                );
+                $employee->refresh();
+            }
 
             $this->candidateRepository->updateStage($candidate, $hiredStage->id);
 

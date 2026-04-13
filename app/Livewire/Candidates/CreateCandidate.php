@@ -5,7 +5,9 @@ namespace App\Livewire\Candidates;
 use App\Actions\Candidates\CreateCandidateAction;
 use App\Data\Candidates\CandidateData;
 use App\Data\Candidates\PersonData;
+use App\Enums\GermanLanguageLevel;
 use App\Repositories\PipelineStageRepository;
+use App\Support\CandidateProfileValidationRules;
 use App\Repositories\PositionRepository;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Collection;
@@ -28,6 +30,18 @@ class CreateCandidate extends Component
     public string $source = '';
 
     public ?string $appliedAt = null;
+
+    public string $nationality = '';
+
+    public string $driving_license_category = '';
+
+    public string $has_own_car = '';
+
+    public string $german_level = '';
+
+    public ?string $available_from = null;
+
+    public string $housing_needed = '';
 
     public function mount(): void
     {
@@ -66,7 +80,7 @@ class CreateCandidate extends Component
             'pipelineStageId' => ['required', 'integer', 'exists:pipeline_stages,id'],
             'source' => ['nullable', 'string', 'max:100'],
             'appliedAt' => ['nullable', 'date'],
-        ], [], [
+        ] + CandidateProfileValidationRules::livewireOptionalProfileRules(), [], [
             'firstName' => __('candidate.first_name'),
             'lastName' => __('candidate.last_name'),
             'email' => __('candidate.email'),
@@ -75,7 +89,7 @@ class CreateCandidate extends Component
             'pipelineStageId' => __('candidate.stage'),
             'source' => __('candidate.source'),
             'appliedAt' => __('candidate.applied_at'),
-        ]);
+        ] + CandidateProfileValidationRules::attributeNames());
 
         $personData = new PersonData(
             firstName: $validated['firstName'],
@@ -90,6 +104,14 @@ class CreateCandidate extends Component
             pipelineStageId: $validated['pipelineStageId'],
             source: $validated['source'] ?: null,
             appliedAt: isset($validated['appliedAt']) ? CarbonImmutable::parse($validated['appliedAt']) : null,
+            nationality: ($validated['nationality'] ?? '') !== '' ? $validated['nationality'] : null,
+            drivingLicenseCategory: ($validated['driving_license_category'] ?? '') !== '' ? $validated['driving_license_category'] : null,
+            hasOwnCar: $this->triStateToBool($validated['has_own_car'] ?? ''),
+            germanLevel: ($validated['german_level'] ?? '') !== '' ? GermanLanguageLevel::from($validated['german_level']) : null,
+            availableFrom: isset($validated['available_from']) && $validated['available_from'] !== ''
+                ? CarbonImmutable::parse($validated['available_from'])
+                : null,
+            housingNeeded: $this->triStateToBool($validated['housing_needed'] ?? ''),
         );
 
         $candidate = app(CreateCandidateAction::class)->handle($personData, $candidateData);
@@ -104,6 +126,16 @@ class CreateCandidate extends Component
         return view('livewire.candidates.create-candidate', [
             'pipelineStages' => $this->pipelineStages,
             'positions' => $this->positions,
+            'germanLevels' => GermanLanguageLevel::cases(),
         ])->title(__('candidate.create'));
+    }
+
+    private function triStateToBool(string $value): ?bool
+    {
+        return match ($value) {
+            '1' => true,
+            '0' => false,
+            default => null,
+        };
     }
 }
