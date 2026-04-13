@@ -21,7 +21,7 @@ class CandidatesController extends Controller
     {
         $this->authorize('view', $candidate);
 
-        return new CandidateResource($candidate->load('person'));
+        return new CandidateResource($this->candidateForApi($candidate));
     }
 
     public function store(StoreCandidateRequest $request): CandidateResource
@@ -31,7 +31,7 @@ class CandidatesController extends Controller
             $request->toCandidateData(),
         );
 
-        return new CandidateResource($candidate->load('person'));
+        return new CandidateResource($this->candidateForApi($candidate));
     }
 
     public function update(UpdateCandidateProfileRequest $request, Candidate $candidate): CandidateResource
@@ -41,6 +41,15 @@ class CandidatesController extends Controller
             $request->toUpdateCandidateProfileData(),
         );
 
-        return new CandidateResource($candidate->load('person'));
+        return new CandidateResource($this->candidateForApi($candidate));
+    }
+
+    private function candidateForApi(Candidate $candidate): Candidate
+    {
+        return $candidate->load([
+            'person',
+            'pipelineStage',
+            'activities' => fn ($q) => $q->with('causer')->latest(),
+        ]);
     }
 }

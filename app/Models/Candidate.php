@@ -7,9 +7,12 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Spatie\Activitylog\Models\Concerns\HasActivity;
+use Spatie\Activitylog\Support\LogOptions;
 
 class Candidate extends Model
 {
+    use HasActivity;
     use HasFactory;
 
     protected $fillable = [
@@ -70,5 +73,19 @@ class Candidate extends Model
     public function interviews(): HasMany
     {
         return $this->hasMany(CalendarEvent::class, 'candidate_id')->where('type', CalendarEvent::TYPE_INTERVIEW);
+    }
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logFillable()
+            ->logOnlyDirty()
+            ->dontLogEmptyChanges()
+            ->useLogName('candidate')
+            ->setDescriptionForEvent(fn (string $eventName) => match ($eventName) {
+                'created' => 'candidate.activity.created',
+                'updated' => 'candidate.activity.updated',
+                default => 'candidate.activity.'.$eventName,
+            });
     }
 }

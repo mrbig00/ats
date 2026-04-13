@@ -18,6 +18,8 @@ use App\Data\Candidates\ConvertCandidateToEmployeeData;
 use Carbon\CarbonImmutable;
 use App\Enums\GermanLanguageLevel;
 use App\Repositories\CandidateDocumentRepository;
+use App\Support\CandidateActivityPresentation;
+use App\Support\CandidatePipelineStageActivity;
 use App\Support\CandidateProfileValidationRules;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -41,6 +43,10 @@ class CandidateShow extends Component
     public string $convertEntryDate = '';
 
     public ?int $newStageId = null;
+
+    public ?string $stageSetByLine = null;
+
+    public bool $showChangeHistoryModal = false;
 
     public bool $showInterviewModal = false;
 
@@ -67,8 +73,17 @@ class CandidateShow extends Component
     public function mount(Candidate $candidate): void
     {
         $this->authorize('view', $candidate);
-        $this->candidate = $candidate->load(['person.employee', 'position', 'pipelineStage', 'notes.user', 'documents', 'interviews']);
+        $this->candidate = $candidate->load([
+            'person.employee',
+            'position',
+            'pipelineStage',
+            'notes.user',
+            'documents',
+            'interviews',
+            'activities' => fn ($q) => $q->with('causer')->latest(),
+        ]);
         $this->newStageId = $candidate->pipeline_stage_id;
+        $this->syncStageAuditMetadata();
         $this->convertEntryDate = now()->format('Y-m-d');
         $this->syncProfileFieldsFromCandidate();
     }
@@ -97,7 +112,16 @@ class CandidateShow extends Component
             new UpdateCandidateProfileData($attributes),
         );
 
-        $this->candidate->refresh()->load(['person.employee', 'position', 'pipelineStage', 'notes.user', 'documents', 'interviews']);
+        $this->candidate->refresh()->load([
+            'person.employee',
+            'position',
+            'pipelineStage',
+            'notes.user',
+            'documents',
+            'interviews',
+            'activities' => fn ($q) => $q->with('causer')->latest(),
+        ]);
+        $this->syncStageAuditMetadata();
         $this->syncProfileFieldsFromCandidate();
         $this->dispatch('notify', __('candidate.profile_updated'));
     }
@@ -130,6 +154,22 @@ class CandidateShow extends Component
         };
     }
 
+    private function syncStageAuditMetadata(): void
+    {
+        $setter = CandidatePipelineStageActivity::currentStageSetter($this->candidate);
+        $this->stageSetByLine = $setter !== null
+            ? __('candidate.stage_set_by', ['name' => $setter['name']])
+            : null;
+    }
+
+    /**
+     * @return list<array{id: int, happened_at: \Carbon\CarbonInterface, summary: string, actor: string, lines: list<array{label: string, from: string, to: string}>}>
+     */
+    public function getChangeHistoryRowsProperty(): array
+    {
+        return CandidateActivityPresentation::changeHistoryRows($this->candidate);
+    }
+
     public function addNote(): void
     {
         $this->validate([
@@ -143,7 +183,10 @@ class CandidateShow extends Component
         ));
 
         $this->noteContent = '';
-        $this->candidate->load(['notes.user']);
+        $this->candidate->load([
+            'notes.user',
+            'activities' => fn ($q) => $q->with('causer')->latest(),
+        ]);
         $this->dispatch('notify', __('candidate.note_added'));
     }
 
@@ -159,7 +202,11 @@ class CandidateShow extends Component
         ));
 
         $this->candidate->refresh();
-        $this->candidate->load(['pipelineStage']);
+        $this->candidate->load([
+            'pipelineStage',
+            'activities' => fn ($q) => $q->with('causer')->latest(),
+        ]);
+        $this->syncStageAuditMetadata();
         $this->dispatch('notify', __('candidate.stage_updated'));
     }
 
@@ -185,6 +232,14 @@ class CandidateShow extends Component
         $this->showConvertModal = false;
         $this->dispatch('notify', __('candidate.converted_to_employee'));
         return $this->redirect(route('employees.index'), navigate: true);
+    }
+
+    public function openChangeHistoryModal(): void
+    {
+        $this->candidate->load([
+            'activities' => fn ($q) => $q->with('causer')->latest(),
+        ]);
+        $this->showChangeHistoryModal = true;
     }
 
     public function openInterviewModal(): void
@@ -269,6 +324,7 @@ class CandidateShow extends Component
         return view('livewire.candidates.candidate-show', [
             'pipelineStages' => $this->pipelineStages,
             'germanLevels' => GermanLanguageLevel::cases(),
+            'changeHistoryRows' => $this->changeHistoryRows,
         ])->title($this->candidate->person->fullName());
     }
 }

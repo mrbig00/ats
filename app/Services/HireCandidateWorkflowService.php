@@ -6,6 +6,7 @@ use App\Actions\Calendar\SyncCalendarItemAction;
 use App\Data\Candidates\ConvertCandidateToEmployeeData;
 use App\Data\Employees\UpdateEmployeeProfileData;
 use App\Events\CandidateHired;
+use App\Events\CandidateStageChanged;
 use App\Models\Candidate;
 use App\Models\Employee;
 use App\Repositories\CalendarEventRepository;
@@ -62,7 +63,10 @@ class HireCandidateWorkflowService
                 $employee->refresh();
             }
 
+            $previousStageId = $candidate->pipeline_stage_id;
             $this->candidateRepository->updateStage($candidate, $hiredStage->id);
+
+            CandidateStageChanged::dispatch($candidate->id, $previousStageId, $hiredStage->id);
 
             $title = __('calendar.entry_date_for', ['name' => $candidate->person->fullName()]);
             $entryEvent = $this->calendarEventRepository->createEntryDateEvent($title, $data->entryDate);
