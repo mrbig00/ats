@@ -14,6 +14,8 @@ class PositionList extends Component
 
     public string $statusFilter = 'open';
 
+    public bool $includeArchived = false;
+
     public string $search = '';
 
     public string $sortField = 'created_at';
@@ -26,6 +28,7 @@ class PositionList extends Component
     {
         return [
             'statusFilter' => ['as' => 'status', 'except' => 'open'],
+            'includeArchived' => ['as' => 'archived', 'except' => false],
             'search' => ['as' => 'q', 'except' => ''],
             'sortField' => ['as' => 'sort', 'except' => 'created_at'],
             'sortDirection' => ['as' => 'dir', 'except' => 'asc'],
@@ -48,6 +51,7 @@ class PositionList extends Component
             sortField: $this->sortField,
             sortDirection: $this->sortDirection,
             perPage: $this->perPage,
+            includeArchived: $this->includeArchived,
         );
 
         return app(PositionRepository::class)->paginate($filters);
@@ -56,6 +60,14 @@ class PositionList extends Component
     public function updatedStatusFilter(): void
     {
         $this->resetPage();
+    }
+
+    public function updatedIncludeArchived(bool $value): void
+    {
+        $this->resetPage();
+        if (! $value) {
+            $this->statusFilter = 'open';
+        }
     }
 
     public function updatedSearch(): void

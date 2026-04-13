@@ -36,4 +36,9 @@ class PositionPolicy
     {
         return $user->role->canEditContent() && $position->isOpen();
     }
+
+    public function reopen(User $user, Position $position): bool
+    {
+        return $user->role->canEditContent() && $position->hasExpiredRecruitmentSession();
+    }
 }

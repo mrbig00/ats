@@ -21,6 +21,9 @@
                     <flux:sidebar.item icon="briefcase" :href="route('jobs.index')" :current="request()->routeIs('jobs.*')" wire:navigate>
                         {{ __('nav.jobs') }}
                     </flux:sidebar.item>
+                    <flux:sidebar.item icon="archive-box" :href="route('archive.index')" :current="request()->routeIs('archive.*')" wire:navigate>
+                        {{ __('nav.archive') }}
+                    </flux:sidebar.item>
                     <flux:sidebar.item icon="users" :href="route('employees.index')" :current="request()->routeIs('employees.*')" wire:navigate>
                         {{ __('nav.employees') }}
                     </flux:sidebar.item>
