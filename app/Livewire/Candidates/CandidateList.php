@@ -17,6 +17,8 @@ class CandidateList extends Component
 
     public string $search = '';
 
+    public bool $includeArchived = false;
+
     public ?int $pipelineStageId = null;
 
     public ?int $positionId = null;
@@ -35,6 +37,7 @@ class CandidateList extends Component
     {
         return [
             'search' => ['as' => 'q', 'except' => ''],
+            'includeArchived' => ['as' => 'archived', 'except' => false],
             'pipelineStageId' => ['as' => 'stage', 'except' => ''],
             'positionId' => ['as' => 'position', 'except' => ''],
             'appliedFrom' => ['as' => 'from', 'except' => ''],
@@ -63,6 +66,7 @@ class CandidateList extends Component
             sortField: $this->sortField,
             sortDirection: $this->sortDirection,
             perPage: $this->perPage,
+            includeArchived: $this->includeArchived,
         );
 
         return app(CandidateRepository::class)->paginate($filters);
@@ -81,7 +85,14 @@ class CandidateList extends Component
      */
     public function getPositionsProperty(): Collection
     {
-        return app(PositionRepository::class)->all();
+        return $this->includeArchived
+            ? app(PositionRepository::class)->all()
+            : app(PositionRepository::class)->allActiveRecruitmentSessions();
+    }
+
+    public function updatedIncludeArchived(): void
+    {
+        $this->resetPage();
     }
 
     public function updatedSearch(): void

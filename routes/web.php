@@ -27,6 +27,7 @@ use App\Livewire\Meetings\MeetingShow;
 use App\Livewire\Positions\CreatePosition;
 use App\Livewire\Positions\EditPosition;
 use App\Livewire\Positions\PositionList;
+use App\Livewire\Archive\ArchiveIndex;
 use App\Livewire\Positions\PositionShow;
 use App\Livewire\Dashboard\Dashboard;
 use App\Livewire\Employees\EmployeeList;
@@ -72,6 +73,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         return response()->json(['data' => array_values(array_merge($eventItems, $taskItems))]);
     })->name('dashboard.calendar.events');
     Route::livewire('dashboard', Dashboard::class)->name('dashboard');
+    Route::livewire('archive', ArchiveIndex::class)->name('archive.index');
     Route::livewire('candidates', CandidateList::class)->name('candidates.index');
     Route::livewire('candidates/create', CreateCandidate::class)->name('candidates.create');
     Route::livewire('candidates/{candidate}', CandidateShow::class)->name('candidates.show');

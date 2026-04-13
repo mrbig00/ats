@@ -1,15 +1,14 @@
 <?php
 
-namespace App\Data\Positions;
+namespace App\Data\Archive;
 
-readonly class PositionFilterData
+readonly class ArchiveListFilterData
 {
     public function __construct(
-        public ?string $status,
         public ?string $search,
         public string $sortField,
         public string $sortDirection,
         public int $perPage,
-        public bool $includeArchived = false,
+        public string $pageName,
     ) {}
 }
