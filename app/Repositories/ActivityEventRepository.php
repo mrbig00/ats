@@ -85,8 +85,8 @@ class ActivityEventRepository
         $rows = ActivityEvent::query()
             ->where('occurred_at', '>=', $from)
             ->where('occurred_at', '<=', $to)
-            ->selectRaw('(occurred_at::date) as date, type, count(*) as count')
-            ->groupByRaw('(occurred_at::date), type')
+            ->selectRaw('date(occurred_at) as date, type, count(*) as count')
+            ->groupByRaw('date(occurred_at), type')
             ->get();
 
         $byDate = [];
