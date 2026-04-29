@@ -3,14 +3,18 @@
 namespace App\Livewire\Positions;
 
 use App\Data\Positions\PositionFilterData;
+use App\Actions\Positions\ImportPositionsCsvAction;
+use App\Data\Imports\CsvImportFileData;
 use App\Repositories\PositionRepository;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Livewire\Component;
+use Livewire\Features\SupportFileUploads\WithFileUploads;
 use Livewire\WithPagination;
 
 class PositionList extends Component
 {
     use WithPagination;
+    use WithFileUploads;
 
     public string $statusFilter = 'open';
 
@@ -23,6 +27,12 @@ class PositionList extends Component
     public string $sortDirection = 'asc';
 
     public int $perPage = 15;
+
+    public bool $csvImportOpen = false;
+
+    public mixed $csvFile = null;
+
+    public ?array $csvImportResult = null;
 
     protected function queryString(): array
     {
@@ -84,6 +94,40 @@ class PositionList extends Component
             $this->sortDirection = 'asc';
         }
         $this->resetPage();
+    }
+
+    public function openCsvImport(): void
+    {
+        $this->authorize('importCsv', \App\Models\Position::class);
+        $this->csvImportOpen = true;
+        $this->csvImportResult = null;
+    }
+
+    public function closeCsvImport(): void
+    {
+        $this->csvImportOpen = false;
+        $this->reset(['csvFile']);
+    }
+
+    public function importCsv(): void
+    {
+        $this->authorize('importCsv', \App\Models\Position::class);
+
+        $this->validate([
+            'csvFile' => ['required', 'file', 'max:51200', 'mimes:csv,txt'],
+        ], [], [
+            'csvFile' => __('common.csv'),
+        ]);
+
+        $path = $this->csvFile->store('csv-imports/positions', 'local');
+        $result = app(ImportPositionsCsvAction::class)->handle(new CsvImportFileData(
+            path: $path,
+            originalName: $this->csvFile->getClientOriginalName(),
+        ));
+
+        $this->csvImportResult = $result->toArray();
+        $this->reset(['csvFile']);
+        $this->dispatch('notify', __('common.csv_import_completed'));
     }
 
     public function render()

@@ -10,9 +10,23 @@ use App\Models\Candidate;
 use App\Models\Position;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 
 class CandidateRepository
 {
+    /**
+     * @return Builder<Candidate>
+     */
+    public function exportQuery(CandidateFilterData $filters): Builder
+    {
+        $query = $this->filteredQuery($filters);
+
+        $direction = strtolower($filters->sortDirection) === 'desc' ? 'desc' : 'asc';
+        $query->orderBy($this->sortFieldColumn($filters->sortField), $direction);
+
+        return $query;
+    }
+
     public function create(CandidateData $data): Candidate
     {
         return Candidate::query()->create([
@@ -52,6 +66,61 @@ class CandidateRepository
     }
 
     /**
+     * @param list<int> $ids
+     * @return Collection<int, Candidate>
+     */
+    public function findManyByIds(array $ids): Collection
+    {
+        if ($ids === []) {
+            return new Collection();
+        }
+
+        return Candidate::query()->whereIn('id', $ids)->get();
+    }
+
+    /**
+     * @param array{
+     *   person_id:int,
+     *   position_id:int,
+     *   pipeline_stage_id:int,
+     *   source:?string,
+     *   applied_at:?string,
+     *   nationality:?string,
+     *   driving_license_category:?string,
+     *   has_own_car:?bool,
+     *   german_level:?string,
+     *   available_from:?string,
+     *   housing_needed:?bool
+     * } $attributes
+     */
+    public function createFromCsv(array $attributes): Candidate
+    {
+        return Candidate::query()->create($attributes);
+    }
+
+    /**
+     * @param array{
+     *   person_id:int,
+     *   position_id:int,
+     *   pipeline_stage_id:int,
+     *   source:?string,
+     *   applied_at:?string,
+     *   nationality:?string,
+     *   driving_license_category:?string,
+     *   has_own_car:?bool,
+     *   german_level:?string,
+     *   available_from:?string,
+     *   housing_needed:?bool
+     * } $attributes
+     */
+    public function updateFromCsv(Candidate $candidate, array $attributes): Candidate
+    {
+        $candidate->update($attributes);
+
+        return $candidate->fresh() ?? $candidate;
+    }
+
+    /**
      * Count candidates not in "hired" or "rejected" pipeline stage (active in pipeline).
      */
     public function countActive(): int
@@ -67,6 +136,19 @@ class CandidateRepository
      * @return LengthAwarePaginator<Candidate>
      */
     public function paginate(CandidateFilterData $filters): LengthAwarePaginator
+    {
+        $query = $this->filteredQuery($filters);
+
+        $direction = strtolower($filters->sortDirection) === 'desc' ? 'desc' : 'asc';
+        $query->orderBy($this->sortFieldColumn($filters->sortField), $direction);
+
+        return $query->paginate($filters->perPage);
+    }
+
+    /**
+     * @return Builder<Candidate>
+     */
+    private function filteredQuery(CandidateFilterData $filters): Builder
     {
         $query = Candidate::query()
             ->with(['person', 'position', 'pipelineStage']);
@@ -108,10 +190,7 @@ class CandidateRepository
             });
         }
 
-        $direction = strtolower($filters->sortDirection) === 'desc' ? 'desc' : 'asc';
-        $query->orderBy($this->sortFieldColumn($filters->sortField), $direction);
-
-        return $query->paginate($filters->perPage);
+        return $query;
     }
 
     /**

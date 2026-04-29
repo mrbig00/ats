@@ -27,6 +27,15 @@
                 </flux:select>
                 <flux:error name="status" />
             </flux:field>
+            <flux:field>
+                <flux:label>{{ __('job.urgency') }}</flux:label>
+                <flux:select wire:model="urgency" :placeholder="__('common.not_specified')">
+                    <flux:select.option value="urgent">{{ __('job.urgency_urgent') }}</flux:select.option>
+                    <flux:select.option value="medium">{{ __('job.urgency_medium') }}</flux:select.option>
+                    <flux:select.option value="good">{{ __('job.urgency_good') }}</flux:select.option>
+                </flux:select>
+                <flux:error name="urgency" />
+            </flux:field>
             <div class="grid gap-4 sm:grid-cols-2">
                 <flux:field>
                     <flux:label>{{ __('job.opens_at') }}</flux:label>

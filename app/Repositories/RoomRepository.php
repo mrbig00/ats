@@ -39,6 +39,45 @@ class RoomRepository
             ->get();
     }
 
+    /**
+     * @return \Illuminate\Database\Eloquent\Collection<int, Room>
+     */
+    public function all(): \Illuminate\Database\Eloquent\Collection
+    {
+        return Room::query()->orderBy('apartment_id')->orderBy('name')->get();
+    }
+
+    /**
+     * @param list<int> $ids
+     * @return \Illuminate\Database\Eloquent\Collection<int, Room>
+     */
+    public function findManyByIds(array $ids): \Illuminate\Database\Eloquent\Collection
+    {
+        if ($ids === []) {
+            return new \Illuminate\Database\Eloquent\Collection();
+        }
+
+        return Room::query()->whereIn('id', $ids)->get();
+    }
+
+    /**
+     * @param array{apartment_id:int,name:string,notes:?string} $attributes
+     */
+    public function createFromCsv(array $attributes): Room
+    {
+        return Room::query()->create($attributes);
+    }
+
+    /**
+     * @param array{apartment_id:int,name:string,notes:?string} $attributes
+     */
+    public function updateFromCsv(Room $room, array $attributes): Room
+    {
+        $room->update($attributes);
+
+        return $room->fresh() ?? $room;
+    }
+
     public function create(RoomData $data): Room
     {
         return Room::query()->create([

@@ -16,6 +16,14 @@ class ApartmentRepository
         return Apartment::query()->withCount('rooms')->orderBy('name')->get();
     }
 
+    /**
+     * @return Collection<int, Apartment>
+     */
+    public function allWithRooms(): Collection
+    {
+        return Apartment::query()->with('rooms')->orderBy('name')->get();
+    }
+
     public function find(int $id): ?Apartment
     {
         return Apartment::query()->with('rooms.occupancies.employee.person')->withCount('rooms')->find($id);
@@ -44,5 +52,36 @@ class ApartmentRepository
     public function delete(Apartment $apartment): void
     {
         $apartment->delete();
+    }
+
+    /**
+     * @param list<int> $ids
+     * @return Collection<int, Apartment>
+     */
+    public function findManyByIds(array $ids): Collection
+    {
+        if ($ids === []) {
+            return new Collection();
+        }
+
+        return Apartment::query()->whereIn('id', $ids)->get();
+    }
+
+    /**
+     * @param array{name:string,address:?string,notes:?string} $attributes
+     */
+    public function createFromCsv(array $attributes): Apartment
+    {
+        return Apartment::query()->create($attributes);
+    }
+
+    /**
+     * @param array{name:string,address:?string,notes:?string} $attributes
+     */
+    public function updateFromCsv(Apartment $apartment, array $attributes): Apartment
+    {
+        $apartment->update($attributes);
+
+        return $apartment->fresh() ?? $apartment;
     }
 }

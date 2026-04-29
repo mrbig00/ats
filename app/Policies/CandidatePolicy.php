@@ -36,4 +36,19 @@ class CandidatePolicy
     {
         return $user->role->canEditContent();
     }
+
+    public function downloadCsvTemplate(User $user): bool
+    {
+        return $user->role->isAdmin();
+    }
+
+    public function exportCsv(User $user): bool
+    {
+        return $user->role->isAdmin();
+    }
+
+    public function importCsv(User $user): bool
+    {
+        return $user->role->isAdmin();
+    }
 }

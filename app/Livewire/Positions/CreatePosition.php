@@ -4,6 +4,7 @@ namespace App\Livewire\Positions;
 
 use App\Actions\Positions\CreatePositionAction;
 use App\Data\Positions\PositionData;
+use App\Enums\PositionUrgency;
 use Carbon\CarbonImmutable;
 use Livewire\Component;
 
@@ -14,6 +15,8 @@ class CreatePosition extends Component
     public string $description = '';
 
     public string $status = 'open';
+
+    public ?string $urgency = null;
 
     public ?string $opensAt = null;
 
@@ -30,12 +33,14 @@ class CreatePosition extends Component
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'status' => ['required', 'string', 'in:open,closed'],
+            'urgency' => ['nullable', 'string', 'in:urgent,medium,good'],
             'opensAt' => ['nullable', 'date'],
             'closesAt' => ['nullable', 'date', 'after_or_equal:opensAt'],
         ], [], [
             'title' => __('job.title'),
             'description' => __('job.description'),
             'status' => __('job.status'),
+            'urgency' => __('job.urgency'),
             'opensAt' => __('job.opens_at'),
             'closesAt' => __('job.closes_at'),
         ]);
@@ -44,6 +49,7 @@ class CreatePosition extends Component
             title: $validated['title'],
             description: $validated['description'] ?: null,
             status: $validated['status'],
+            urgency: isset($validated['urgency']) && $validated['urgency'] !== '' ? PositionUrgency::from($validated['urgency']) : null,
             opensAt: isset($validated['opensAt']) ? CarbonImmutable::parse($validated['opensAt']) : null,
             closesAt: isset($validated['closesAt']) ? CarbonImmutable::parse($validated['closesAt']) : null,
         );

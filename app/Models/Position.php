@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Carbon\CarbonImmutable;
+use App\Enums\PositionUrgency;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -16,6 +17,7 @@ class Position extends Model
         'title',
         'description',
         'status',
+        'urgency',
         'opens_at',
         'closes_at',
     ];
@@ -25,6 +27,7 @@ class Position extends Model
         return [
             'opens_at' => 'date',
             'closes_at' => 'date',
+            'urgency' => PositionUrgency::class,
         ];
     }
 
@@ -97,5 +100,46 @@ class Position extends Model
     public function statusLabel(): string
     {
         return $this->status === 'open' ? __('job.status_open') : __('job.status_closed');
+    }
+
+    public function openForDays(): int
+    {
+        $start = $this->opens_at !== null
+            ? CarbonImmutable::instance($this->opens_at)->startOfDay()
+            : CarbonImmutable::instance($this->created_at)->startOfDay();
+
+        $end = $this->hasExpiredRecruitmentSession()
+            ? ($this->closes_at !== null
+                ? CarbonImmutable::instance($this->closes_at)->startOfDay()
+                : CarbonImmutable::instance($this->updated_at)->startOfDay())
+            : CarbonImmutable::today()->startOfDay();
+
+        if ($end->lessThan($start)) {
+            return 0;
+        }
+
+        return $start->diffInDays($end);
+    }
+
+    public function closesInDays(): ?int
+    {
+        if ($this->closes_at === null) {
+            return null;
+        }
+
+        $today = CarbonImmutable::today()->startOfDay();
+        $closesAt = CarbonImmutable::instance($this->closes_at)->startOfDay();
+
+        return $today->diffInDays($closesAt, false);
+    }
+
+    public function closesInDaysForDisplay(): ?int
+    {
+        $days = $this->closesInDays();
+        if ($days === null) {
+            return null;
+        }
+
+        return max(0, $days);
     }
 }

@@ -4,6 +4,7 @@ namespace App\Livewire\Positions;
 
 use App\Actions\Positions\DeletePositionAction;
 use App\Models\Position;
+use App\Repositories\PositionRepository;
 use Livewire\Component;
 
 class PositionShow extends Component
@@ -12,7 +13,7 @@ class PositionShow extends Component
 
     public function mount(Position $position): void
     {
-        $this->position = $position->loadCount('candidates');
+        $this->position = app(PositionRepository::class)->find($position->id) ?? abort(404);
         $this->authorize('view', $this->position);
     }
 
@@ -31,7 +32,7 @@ class PositionShow extends Component
     public function render()
     {
         return view('livewire.positions.position-show', [
-            'position' => $this->position->loadCount('candidates'),
+            'position' => $this->position,
         ])->title($this->position->title);
     }
 }

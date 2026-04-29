@@ -8,6 +8,11 @@
             <flux:badge size="lg" :color="$position->isOpen() ? 'green' : 'zinc'" inset="top bottom">
                 {{ $position->statusLabel() }}
             </flux:badge>
+            @if ($position->urgency)
+                <flux:badge size="lg" :color="$position->urgency->badgeColor()" inset="top bottom">
+                    {{ $position->urgency->label() }}
+                </flux:badge>
+            @endif
         </div>
         <div class="flex flex-wrap gap-2">
             @can('edit', $position)
@@ -59,6 +64,44 @@
                 <flux:button size="sm" class="mt-2" :href="route('candidates.index', ['position' => $position->id])" wire:navigate variant="outline">
                     {{ __('job.view_candidates') }}
                 </flux:button>
+            </flux:card>
+            <flux:card>
+                <flux:heading size="lg" class="mb-4">{{ __('job.funnel_kpis') }}</flux:heading>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <flux:text class="text-zinc-500 dark:text-zinc-400">{{ __('job.kpi_applied') }}</flux:text>
+                        <flux:text class="text-2xl font-semibold">{{ $position->funnel_applied_count }}</flux:text>
+                    </div>
+                    <div>
+                        <flux:text class="text-zinc-500 dark:text-zinc-400">{{ __('job.kpi_interview') }}</flux:text>
+                        <flux:text class="text-2xl font-semibold">{{ $position->funnel_interview_count }}</flux:text>
+                    </div>
+                    <div>
+                        <flux:text class="text-zinc-500 dark:text-zinc-400">{{ __('job.kpi_offer') }}</flux:text>
+                        <flux:text class="text-2xl font-semibold">{{ $position->funnel_offer_count }}</flux:text>
+                    </div>
+                    <div>
+                        <flux:text class="text-zinc-500 dark:text-zinc-400">{{ __('job.kpi_hired') }}</flux:text>
+                        <flux:text class="text-2xl font-semibold">{{ $position->funnel_hired_count }}</flux:text>
+                    </div>
+                </div>
+            </flux:card>
+            <flux:card>
+                <flux:heading size="lg" class="mb-4">{{ __('job.open_days') }}</flux:heading>
+                <div class="space-y-2">
+                    <div>
+                        <flux:text class="text-zinc-500 dark:text-zinc-400">{{ __('job.open_for_days_short', ['days' => $position->openForDays()]) }}</flux:text>
+                    </div>
+                    <div>
+                        <flux:text class="text-zinc-500 dark:text-zinc-400">
+                            @if ($position->closesInDaysForDisplay() !== null)
+                                {{ __('job.closes_in_days_short', ['days' => $position->closesInDaysForDisplay()]) }}
+                            @else
+                                {{ __('common.em_dash') }}
+                            @endif
+                        </flux:text>
+                    </div>
+                </div>
             </flux:card>
         </div>
     </div>

@@ -21,4 +21,17 @@ class PersonRepository
     {
         return Person::query()->find($id);
     }
+
+    public function findByEmail(string $email): ?Person
+    {
+        $email = trim($email);
+        if ($email === '') {
+            return null;
+        }
+
+        return Person::query()
+            ->where('email', $email)
+            ->orderBy('id')
+            ->first();
+    }
 }

@@ -3,6 +3,8 @@
 use App\Actions\Dashboard\GetDashboardCalendarEventsAction;
 use App\Actions\Meetings\ListMeetingsForCalendarAction;
 use App\Http\Controllers\CandidateDocumentController;
+use App\Http\Controllers\CsvExportController;
+use App\Http\Controllers\CsvTemplateController;
 use App\Http\Resources\Api\V1\DashboardCalendarResource;
 use App\Http\Resources\Api\V1\MeetingResource;
 use App\Repositories\TaskRepository;
@@ -75,17 +77,23 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::livewire('dashboard', Dashboard::class)->name('dashboard');
     Route::livewire('archive', ArchiveIndex::class)->name('archive.index');
     Route::livewire('candidates', CandidateList::class)->name('candidates.index');
+    Route::get('candidates/csv/template', [CsvTemplateController::class, 'candidates'])->name('candidates.csv.template');
+    Route::get('candidates/csv/export', [CsvExportController::class, 'candidates'])->name('candidates.csv.export');
     Route::livewire('candidates/create', CreateCandidate::class)->name('candidates.create');
     Route::livewire('candidates/{candidate}', CandidateShow::class)->name('candidates.show');
     Route::get('candidates/{candidate}/documents/{document}/download', [CandidateDocumentController::class, 'download'])
         ->name('candidates.documents.download');
     Route::livewire('jobs', PositionList::class)->name('jobs.index');
+    Route::get('jobs/csv/template', [CsvTemplateController::class, 'positions'])->name('jobs.csv.template');
+    Route::get('jobs/csv/export', [CsvExportController::class, 'positions'])->name('jobs.csv.export');
     Route::livewire('jobs/create', CreatePosition::class)->name('jobs.create');
     Route::livewire('jobs/{position}', PositionShow::class)->name('jobs.show');
     Route::livewire('jobs/{position}/edit', EditPosition::class)->name('jobs.edit');
     Route::livewire('employees', EmployeeList::class)->name('employees.index');
     Route::livewire('employees/{employee}', EmployeeShow::class)->name('employees.show');
     Route::livewire('housing', HousingList::class)->name('housing.index');
+    Route::get('housing/apartments/csv/template', [CsvTemplateController::class, 'apartments'])->name('housing.apartments.csv.template');
+    Route::get('housing/apartments/csv/export', [CsvExportController::class, 'apartments'])->name('housing.apartments.csv.export');
     Route::livewire('housing/apartments/create', CreateApartment::class)->name('housing.apartments.create');
     Route::livewire('housing/apartments/{apartment}', ApartmentShow::class)->name('housing.apartments.show');
     Route::livewire('housing/apartments/{apartment}/edit', EditApartment::class)->name('housing.apartments.edit');
