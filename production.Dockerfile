@@ -3,11 +3,12 @@ FROM serversideup/php:8.5-frankenphp
 
 USER root
 
-# Install PHP extensions required by Laravel (PostgreSQL, zip, bcmath)
+# Install PHP extensions required by Laravel and PhpSpreadsheet (maatwebsite/excel)
 RUN install-php-extensions \
     pdo_pgsql \
     zip \
-    bcmath
+    bcmath \
+    gd
 
 # Install Node.js for frontend build (LTS 20.x)
 RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
