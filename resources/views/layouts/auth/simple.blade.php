@@ -14,6 +14,7 @@
                 </a>
                 <div class="flex flex-col gap-6">
                     {{ $slot }}
+                    <x-app-version-indicator class="text-center" />
                 </div>
             </div>
         </div>

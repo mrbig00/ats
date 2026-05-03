@@ -66,6 +66,7 @@
     "common.yes": "Ja",
     "common.no": "Nein",
     "common.not_specified": "Keine Angabe",
+    "common.version": "Version :version",
     "common.em_dash": "—",
     "common.id": "ID",
     "common.person": "Person",

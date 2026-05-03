@@ -39,6 +39,20 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Compute APP_VERSION
+        id: app_version
+        env:
+          GIT_BRANCH_LABEL: ${{ github.head_ref || github.ref_name }}
+        run: |
+          set -eu
+          short_sha="$(git rev-parse --short HEAD)"
+          branch="$GIT_BRANCH_LABEL"
+          [ -z "$branch" ] && branch="unknown"
+          branch_slug="$(printf '%s' "$branch" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g' | sed 's/--*/-/g' | sed 's/^-//;s/-$//')"
+          [ -z "$branch_slug" ] && branch_slug="unknown"
+          echo "APP_VERSION=${short_sha}-${branch_slug}"
+          printf 'version=%s\n' "${short_sha}-${branch_slug}" >>"$GITHUB_OUTPUT"
+
       - name: Extract metadata and build
         id: meta
         uses: docker/metadata-action@v5
@@ -54,6 +68,8 @@ jobs:
         with:
           context: .
           file: production.Dockerfile
+          build-args: |
+            APP_VERSION=${{ steps.app_version.outputs.version }}
           push: ${{ github.event_name != 'pull_request' && github.ref == 'refs/heads/main' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}

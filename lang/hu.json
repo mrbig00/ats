@@ -66,6 +66,7 @@
     "common.yes": "Igen",
     "common.no": "Nem",
     "common.not_specified": "Nincs megadva",
+    "common.version": "Verzió: :version",
     "common.em_dash": "—",
     "common.id": "ID",
     "common.person": "Személy",

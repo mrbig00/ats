@@ -43,6 +43,10 @@ RUN chown -R www-data:www-data storage bootstrap/cache \
 # Create storage link at build time (as root); autorun would fail as www-data (public/ owned by root)
 RUN php artisan storage:link
 
+# Injected by CI/local build: `<short-sha>-<branch-slug>` (matches GitHub Actions build workflow)
+ARG APP_VERSION=
+ENV APP_VERSION=${APP_VERSION}
+
 USER www-data
 
 # FrankenPHP serves from /var/www/html/public by default (CADDY_SERVER_ROOT)
