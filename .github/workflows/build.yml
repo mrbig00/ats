@@ -48,10 +48,16 @@ jobs:
           short_sha="$(git rev-parse --short HEAD)"
           branch="$GIT_BRANCH_LABEL"
           [ -z "$branch" ] && branch="unknown"
-          branch_slug="$(printf '%s' "$branch" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g' | sed 's/--*/-/g' | sed 's/^-//;s/-$//')"
+          slug_chunk() {
+            printf '%s' "$1" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g' | sed 's/--*/-/g' | sed 's/^-//;s/-$//'
+          }
+          branch_slug="$(slug_chunk "$branch")"
+          short_slug="$(slug_chunk "$short_sha")"
           [ -z "$branch_slug" ] && branch_slug="unknown"
-          echo "APP_VERSION=${short_sha}-${branch_slug}"
-          printf 'version=%s\n' "${short_sha}-${branch_slug}" >>"$GITHUB_OUTPUT"
+          [ -z "$short_slug" ] && short_slug="unknown"
+          version="${branch_slug}-${short_slug}"
+          echo "APP_VERSION=${version}"
+          printf 'version=%s\n' "${version}" >>"$GITHUB_OUTPUT"
 
       - name: Extract metadata and build
         id: meta
