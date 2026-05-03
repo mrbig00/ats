@@ -76,6 +76,7 @@ class CandidateCsvImport implements ToCollection, WithHeadingRow, WithValidation
 
         foreach ($rows as $rowIndex => $row) {
             /** @var array<string, mixed> $row */
+            $row = collect($row)->all();
             $rowNumber = (int) $rowIndex + 2; // +1 for 0-index, +1 for heading row
 
             $id = isset($row['id']) && is_numeric($row['id']) ? (int) $row['id'] : null;

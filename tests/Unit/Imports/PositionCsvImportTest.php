@@ -42,3 +42,24 @@ it('creates and updates positions from csv rows', function () {
     expect($collector->result()->updatedCount)->toBe(1);
 });
 
+it('maps urgency synonym high to urgent when importing', function () {
+    $collector = new ImportResultCollector();
+    $import = new PositionCsvImport(app(PositionRepository::class), $collector);
+
+    $import->collection(new Collection([
+        [
+            'id' => null,
+            'title' => 'Urgent role',
+            'description' => null,
+            'status' => 'open',
+            'urgency' => 'high',
+            'opens_at' => null,
+            'closes_at' => null,
+        ],
+    ]));
+
+    $position = Position::query()->where('title', 'Urgent role')->firstOrFail();
+    expect($position->urgency)->not->toBeNull();
+    expect($position->urgency->value)->toBe('urgent');
+});
+

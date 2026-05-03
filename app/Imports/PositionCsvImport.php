@@ -2,6 +2,7 @@
 
 namespace App\Imports;
 
+use App\Enums\PositionUrgency;
 use App\Imports\Support\ImportResultCollector;
 use App\Repositories\PositionRepository;
 use Illuminate\Support\Collection;
@@ -22,6 +23,23 @@ class PositionCsvImport implements ToCollection, WithHeadingRow, WithValidation,
         private readonly PositionRepository $positions,
         private readonly ImportResultCollector $collector,
     ) {}
+
+    /**
+     * @param array<string, mixed>|mixed $data
+     * @return array<string, mixed>
+     */
+    public function prepareForValidation($data, $index): array
+    {
+        if (! is_array($data)) {
+            return [];
+        }
+
+        if (array_key_exists('urgency', $data) && $data['urgency'] !== null && (string) $data['urgency'] !== '') {
+            $data['urgency'] = PositionUrgency::normalizeCsvValue((string) $data['urgency']);
+        }
+
+        return $data;
+    }
 
     public function collection(Collection $rows): void
     {
@@ -49,7 +67,9 @@ class PositionCsvImport implements ToCollection, WithHeadingRow, WithValidation,
                 'title' => (string) $row['title'],
                 'description' => isset($row['description']) && (string) $row['description'] !== '' ? (string) $row['description'] : null,
                 'status' => (string) $row['status'],
-                'urgency' => isset($row['urgency']) && (string) $row['urgency'] !== '' ? (string) $row['urgency'] : null,
+                'urgency' => isset($row['urgency']) && (string) $row['urgency'] !== ''
+                    ? PositionUrgency::normalizeCsvValue((string) $row['urgency'])
+                    : null,
                 'opens_at' => isset($row['opens_at']) && (string) $row['opens_at'] !== '' ? (string) $row['opens_at'] : null,
                 'closes_at' => isset($row['closes_at']) && (string) $row['closes_at'] !== '' ? (string) $row['closes_at'] : null,
             ];
@@ -72,7 +92,7 @@ class PositionCsvImport implements ToCollection, WithHeadingRow, WithValidation,
             '*.title' => ['required', 'string', 'max:255'],
             '*.description' => ['nullable', 'string'],
             '*.status' => ['required', 'string', 'in:open,closed'],
-            '*.urgency' => ['nullable', 'string'],
+            '*.urgency' => ['nullable', 'string', 'in:urgent,medium,good'],
             '*.opens_at' => ['nullable', 'date'],
             '*.closes_at' => ['nullable', 'date'],
         ];
