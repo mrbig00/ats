@@ -1,3 +1,9 @@
+# Create secrets before apply: copy postgres-secret.env.example → postgres-secret.env
+# (and laravel-secret.env.example → laravel-secret.env), fill values, never commit *.env files.
+#   kubectl create secret generic postgres-secret --from-env-file=kubernetes/postgres-secret.env
+#   kubectl create secret generic ats-laravel-secret --from-env-file=kubernetes/laravel-secret.env
+# If you previously set APP_KEY only on the Deployment (not in the secret), patch the secret so
+# ats-laravel-secret.APP_KEY matches that value before rolling, or sessions/decryption break.
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -5,22 +11,6 @@ metadata:
 data:
   POSTGRES_DB: ats
   POSTGRES_USER: ats
----
-apiVersion: v1
-kind: Secret
-metadata:
-  name: postgres-secret
-type: Opaque
-stringData:
-  POSTGRES_PASSWORD: changeme_secure_password
----
-apiVersion: v1
-kind: Secret
-metadata:
-  name: ats-laravel-secret
-type: Opaque
-stringData:
-  APP_KEY: base64:k7JmN2pQ4rT6vX9zA1bC3dE5fG7hI0jL2nO4qR8sU6wY=
 ---
 apiVersion: apps/v1
 kind: StatefulSet
@@ -176,6 +166,9 @@ spec:
             requests:
               memory: "128Mi"
               cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "250m"
         - name: laravel
           imagePullPolicy: Always
           image: ghcr.io/mrbig00/ats:latest
@@ -195,7 +188,10 @@ spec:
             - name: APP_ENV
               value: preprod
             - name: APP_KEY
-              value: base64:VjxPe7zpVHs6/vo0+QzMMD3rI/h49MMA9AVVK36xB+c=
+              valueFrom:
+                secretKeyRef:
+                  name: ats-laravel-secret
+                  key: APP_KEY
             - name: APP_DEBUG
               value: "true"
             - name: APP_URL
