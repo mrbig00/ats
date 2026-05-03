@@ -4,6 +4,8 @@
 #   kubectl create secret generic ats-laravel-secret --from-env-file=kubernetes/laravel-secret.env
 # If you previously set APP_KEY only on the Deployment (not in the secret), patch the secret so
 # ats-laravel-secret.APP_KEY matches that value before rolling, or sessions/decryption break.
+# TLS: install cert-manager, apply kubernetes/cluster-issuer-letsencrypt-prod.yaml (edit email first),
+# then apply this manifest; Ingress requests a cert via HTTP-01 into Secret ats-tls.
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -303,8 +305,14 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: ats-ingress
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
 spec:
   ingressClassName: traefik
+  tls:
+    - hosts:
+        - ats.k3s.szanto-zoltan.com
+      secretName: ats-tls
   rules:
     - host: ats.k3s.szanto-zoltan.com
       http:
