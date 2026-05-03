@@ -191,7 +191,7 @@ spec:
           env:
             # Application
             - name: APP_NAME
-              value: "Trip Planner"
+              value: "ATS"
             - name: APP_ENV
               value: preprod
             - name: APP_KEY
