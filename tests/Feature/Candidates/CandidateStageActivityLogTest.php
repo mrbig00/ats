@@ -31,7 +31,7 @@ test('pipeline stage changes are logged with authenticated causer', function () 
         pipelineStageId: $stages[1]->id,
     ));
 
-    $last = Activity::query()->forSubject($candidate)->latest()->first();
+    $last = Activity::query()->forSubject($candidate)->orderByDesc('id')->first();
     expect($last)->not->toBeNull()
         ->and($last->causer_id)->toBe($user->id)
         ->and($last->description)->toBe('candidate.activity.updated');

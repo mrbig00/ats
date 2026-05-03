@@ -52,7 +52,12 @@ class CandidateResource extends JsonResource
             'nationality' => $candidate->nationality,
             'driving_license_category' => $candidate->driving_license_category,
             'has_own_car' => $candidate->has_own_car,
-            'german_level' => $candidate->german_level?->value,
+            'german_level' => $candidate->german_level !== null
+                ? [
+                    'value' => $candidate->german_level->value,
+                    'label' => $candidate->german_level->label(),
+                ]
+                : null,
             'available_from' => $candidate->available_from?->toDateString(),
             'housing_needed' => $candidate->housing_needed,
             'created_at' => $candidate->created_at?->toIso8601String(),
