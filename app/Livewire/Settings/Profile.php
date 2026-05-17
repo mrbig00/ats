@@ -3,6 +3,7 @@
 namespace App\Livewire\Settings;
 
 use App\Concerns\ProfileValidationRules;
+use App\Support\Locale;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
@@ -17,13 +18,18 @@ class Profile extends Component
 
     public string $email = '';
 
+    public string $language = '';
+
     /**
      * Mount the component.
      */
     public function mount(): void
     {
-        $this->name = Auth::user()->name;
-        $this->email = Auth::user()->email;
+        $user = Auth::user();
+
+        $this->name = $user->name;
+        $this->email = $user->email;
+        $this->language = $user->language ?? (string) config('app.locale');
     }
 
     /**
@@ -42,6 +48,8 @@ class Profile extends Component
         }
 
         $user->save();
+
+        Locale::apply($user->language);
 
         $this->dispatch('profile-updated', name: $user->name);
     }

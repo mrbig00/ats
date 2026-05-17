@@ -10,7 +10,10 @@ use App\Events\InterviewScheduled;
 use App\Events\MeetingScheduled;
 use App\Events\TaskCreated;
 use App\Listeners\LogActivityEventListeners;
+use App\Models\User;
+use App\Support\Locale;
 use Carbon\CarbonImmutable;
+use Illuminate\Auth\Events\Login;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Date;
@@ -43,6 +46,16 @@ class AppServiceProvider extends ServiceProvider
         $this->configureDefaults();
         $this->configureApiRateLimiting();
         $this->registerActivityEventListeners();
+        $this->registerLocaleListeners();
+    }
+
+    private function registerLocaleListeners(): void
+    {
+        Event::listen(Login::class, function (Login $event): void {
+            if ($event->user instanceof User && filled($event->user->language)) {
+                Locale::apply(Locale::normalize($event->user->language));
+            }
+        });
     }
 
     private function registerActivityEventListeners(): void

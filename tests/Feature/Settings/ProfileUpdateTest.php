@@ -18,6 +18,7 @@ test('profile information can be updated', function () {
     $response = Livewire::test(Profile::class)
         ->set('name', 'Test User')
         ->set('email', 'test@example.com')
+        ->set('language', 'en')
         ->call('updateProfileInformation');
 
     $response->assertHasNoErrors();
@@ -37,6 +38,7 @@ test('email verification status is unchanged when email address is unchanged', f
     $response = Livewire::test(Profile::class)
         ->set('name', 'Test User')
         ->set('email', $user->email)
+        ->set('language', 'en')
         ->call('updateProfileInformation');
 
     $response->assertHasNoErrors();
@@ -59,6 +61,38 @@ test('user can delete their account', function () {
 
     expect($user->fresh())->toBeNull();
     expect(auth()->check())->toBeFalse();
+});
+
+test('profile language can be updated', function () {
+    $user = User::factory()->create(['language' => 'en']);
+
+    $this->actingAs($user);
+
+    Livewire::test(Profile::class)
+        ->set('name', $user->name)
+        ->set('email', $user->email)
+        ->set('language', 'ro')
+        ->call('updateProfileInformation')
+        ->assertHasNoErrors();
+
+    $user->refresh();
+
+    expect($user->language)->toBe('ro');
+    expect(session('locale'))->toBe('ro');
+    expect(app()->getLocale())->toBe('ro');
+});
+
+test('profile rejects unsupported language', function () {
+    $user = User::factory()->create();
+
+    $this->actingAs($user);
+
+    Livewire::test(Profile::class)
+        ->set('name', $user->name)
+        ->set('email', $user->email)
+        ->set('language', 'fr')
+        ->call('updateProfileInformation')
+        ->assertHasErrors(['language']);
 });
 
 test('correct password must be provided to delete account', function () {
