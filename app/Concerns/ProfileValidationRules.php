@@ -3,6 +3,7 @@
 namespace App\Concerns;
 
 use App\Models\User;
+use App\Support\Locale;
 use Illuminate\Validation\Rule;
 
 trait ProfileValidationRules
@@ -12,12 +13,26 @@ trait ProfileValidationRules
      *
      * @return array<string, array<int, \Illuminate\Contracts\Validation\Rule|array<mixed>|string>>
      */
-    protected function profileRules(?int $userId = null): array
+    protected function profileRules(?int $userId = null, bool $withLanguage = true): array
     {
-        return [
+        $rules = [
             'name' => $this->nameRules(),
             'email' => $this->emailRules($userId),
         ];
+
+        if ($withLanguage) {
+            $rules['language'] = $this->languageRules();
+        }
+
+        return $rules;
+    }
+
+    /**
+     * @return array<int, \Illuminate\Contracts\Validation\Rule|array<mixed>|string>
+     */
+    protected function languageRules(): array
+    {
+        return ['required', 'string', Rule::in(Locale::supportedCodes())];
     }
 
     /**
