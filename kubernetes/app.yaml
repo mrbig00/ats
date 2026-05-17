@@ -328,9 +328,20 @@ spec:
   tls:
     - hosts:
         - ats.k3s.szanto-zoltan.com
+        - ats.hzstrade.ro
       secretName: ats-tls
   rules:
     - host: ats.k3s.szanto-zoltan.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: ats
+                port:
+                  number: 80
+    - host: ats.hzstrade.ro
       http:
         paths:
           - path: /
