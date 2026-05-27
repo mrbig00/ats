@@ -1,0 +1,27 @@
+# TLS via cert-manager (cluster-issuer letsencrypt-prod). DNS: grafana.k3s.szanto-zoltan.com → cluster.
+# Apply after Grafana Helm release: kubectl apply -f kubernetes/observability/ingress-grafana.yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: grafana-ingress
+  namespace: observability
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    traefik.ingress.kubernetes.io/router.middlewares: observability-grafana-https-redirect@kubernetescrd
+spec:
+  ingressClassName: traefik
+  tls:
+    - hosts:
+        - grafana.k3s.szanto-zoltan.com
+      secretName: grafana-tls
+  rules:
+    - host: grafana.k3s.szanto-zoltan.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: grafana
+                port:
+                  number: 80

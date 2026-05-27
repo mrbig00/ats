@@ -1,0 +1,93 @@
+# Deploy the LGTM observability stack (Loki, Tempo, Mimir, Alloy, Grafana) to Kubernetes.
+#
+# Prerequisites (repository Settings → Secrets → Actions):
+# - KUBECONFIG: full kubeconfig for the cluster (same as deploy.yml).
+#
+# One-time bootstrap before the first run:
+#   kubectl apply -f kubernetes/observability/namespace.yaml
+#   cp kubernetes/observability/grafana-admin-secret.env.example \
+#      kubernetes/observability/grafana-admin-secret.env
+#   # edit admin-password, then:
+#   kubectl create secret generic grafana-admin -n observability \
+#     --from-env-file=kubernetes/observability/grafana-admin-secret.env
+#
+name: Deploy observability stack
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-observability
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: v3.17.0
+
+      - name: Setup Helmfile and helm-diff
+        run: |
+          curl -fsSL https://github.com/helmfile/helmfile/releases/download/v0.170.1/helmfile_0.170.1_linux_amd64.tar.gz \
+            | tar -xz -C /tmp
+          sudo mv /tmp/helmfile /usr/local/bin/helmfile
+          helm plugin install https://github.com/databus23/helm-diff
+          helmfile version
+          helm diff version
+
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v4
+
+      - name: Configure kubeconfig
+        env:
+          KUBECONFIG_SECRET: ${{ secrets.KUBECONFIG }}
+        run: |
+          mkdir -p "$HOME/.kube"
+          printf '%s' "$KUBECONFIG_SECRET" > "$HOME/.kube/config"
+          chmod 600 "$HOME/.kube/config"
+          echo "KUBECONFIG=$HOME/.kube/config" >> "$GITHUB_ENV"
+
+      - name: kubectl sanity check
+        run: |
+          kubectl version --client
+          kubectl cluster-info
+
+      - name: Ensure observability namespace
+        run: kubectl apply -f kubernetes/observability/namespace.yaml
+
+      - name: Verify Grafana admin secret
+        run: |
+          kubectl get secret grafana-admin -n observability >/dev/null \
+            || (echo "Missing secret grafana-admin in observability namespace. See workflow header comments." && exit 1)
+
+      - name: Helmfile apply
+        working-directory: kubernetes/observability
+        run: helmfile apply
+
+      - name: Apply Grafana ingress
+        run: |
+          kubectl apply -f kubernetes/observability/middleware-https-redirect.yaml
+          kubectl apply -f kubernetes/observability/ingress-grafana.yaml
+
+      - name: Wait for Grafana rollout
+        run: kubectl rollout status deployment/grafana -n observability --timeout=10m
+
+      - name: Wait for Alloy rollout
+        run: kubectl rollout status deployment/alloy -n observability --timeout=10m
+
+      - name: Debug on failure
+        if: failure()
+        run: |
+          kubectl get pods -n observability || true
+          kubectl describe pods -n observability -l app.kubernetes.io/name=alloy || true
+          kubectl logs -n observability -l app.kubernetes.io/name=alloy --tail=100 || true

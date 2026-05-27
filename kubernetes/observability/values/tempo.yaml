@@ -1,0 +1,37 @@
+# Tempo monolithic — receives OTLP from Alloy.
+tempo:
+  reportingEnabled: false
+  retention: 168h
+  server:
+    http_listen_port: 3100
+  receivers:
+    otlp:
+      protocols:
+        grpc:
+          endpoint: 0.0.0.0:4317
+        http:
+          endpoint: 0.0.0.0:4318
+  storage:
+    trace:
+      backend: local
+      local:
+        path: /var/tempo/traces
+      wal:
+        path: /var/tempo/wal
+
+persistence:
+  enabled: true
+  size: 8Gi
+
+resources:
+  requests:
+    cpu: 25m
+    memory: 256Mi
+  limits:
+    cpu: 300m
+    memory: 512Mi
+
+service:
+  type: ClusterIP
+
+fullnameOverride: tempo

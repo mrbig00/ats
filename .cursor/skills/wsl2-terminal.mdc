@@ -1,0 +1,95 @@
+---
+description: Use WSL2 for terminal commands
+alwaysApply: true
+---
+
+# WSL2 Terminal Execution Rule
+
+The user is running development tools inside WSL2 on Windows.
+
+When executing terminal commands, prefer running them through WSL2 rather than Windows PowerShell or CMD.
+
+## Command execution
+
+Use this pattern for Linux commands:
+
+```bash
+wsl bash -lc '<command>'
+```
+
+Examples:
+
+```bash
+wsl bash -lc 'pwd'
+wsl bash -lc 'ls -la'
+wsl bash -lc 'kubectl get pods -A'
+wsl bash -lc 'helm list -A'
+wsl bash -lc 'docker ps'
+```
+
+## Kubernetes commands
+
+Assume `kubectl`, `helm`, kubeconfig, and cloud CLIs are configured inside WSL2 unless proven otherwise.
+
+Use:
+
+```bash
+wsl bash -lc 'kubectl config current-context'
+wsl bash -lc 'kubectl get ns'
+wsl bash -lc 'kubectl get pods -A'
+```
+
+Do not run Kubernetes commands directly in PowerShell unless the user explicitly asks.
+
+## Safety
+
+Before destructive Kubernetes actions, show the exact command and ask for confirmation.
+
+Destructive actions include:
+
+```bash
+kubectl delete
+kubectl apply
+kubectl patch
+kubectl rollout restart
+helm upgrade
+helm uninstall
+```
+
+Prefer read-only commands first:
+
+```bash
+kubectl get
+kubectl describe
+kubectl logs
+kubectl top
+kubectl events
+```
+
+## Paths
+
+When referencing project files from Windows paths, convert them for WSL2.
+
+Example:
+
+```txt
+C:\Users\me\project
+```
+
+becomes:
+
+```txt
+/mnt/c/Users/me/project
+```
+
+When unsure, run:
+
+```bash
+wsl bash -lc 'pwd'
+```
+
+## Default behavior
+
+For terminal tasks, assume the correct shell is WSL2 Bash.
+
+Use concise commands, quote carefully, and avoid Windows-specific shell syntax unless requested.

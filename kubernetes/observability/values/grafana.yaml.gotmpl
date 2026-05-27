@@ -1,0 +1,59 @@
+admin:
+  existingSecret: grafana-admin
+  userKey: admin-user
+  passwordKey: admin-password
+
+persistence:
+  enabled: true
+  size: 1Gi
+
+# RWO PVC + 1 replica: RollingUpdate deadlocks (new pod cannot mount volume until old exits).
+deploymentStrategy:
+  type: Recreate
+
+resources:
+  requests:
+    cpu: 25m
+    memory: 128Mi
+  limits:
+    cpu: 300m
+    memory: 256Mi
+
+# Single container — saves CPU vs config-reloader sidecar on small nodes.
+configReloader:
+  enabled: false
+
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: false
+
+# Bumped when provisioning changes — triggers a rolling restart via checksum/config on upgrade.
+podAnnotations:
+  observability.ats/provisioning-revision: "5"
+
+datasources:
+  datasources.yaml:
+{{ readFile "../grafana/provisioning/datasources.yaml" | indent 4 }}
+
+dashboardProviders:
+  dashboardproviders.yaml:
+{{ readFile "../grafana/provisioning/dashboards.yaml" | indent 4 }}
+
+dashboards:
+  default:
+    ats-overview:
+      json: |
+{{ readFile "../grafana/dashboards/ats-overview.json" | indent 8 }}
+    ats-logs:
+      json: |
+{{ readFile "../grafana/dashboards/ats-logs.json" | indent 8 }}
+    ats-traces:
+      json: |
+{{ readFile "../grafana/dashboards/ats-traces.json" | indent 8 }}
+    node-exporter:
+      gnetId: 1860
+      revision: 37
+      datasource: Prometheus

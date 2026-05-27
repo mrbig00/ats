@@ -1,0 +1,51 @@
+alloy:
+  configMap:
+    create: true
+    content: |
+{{ readFile "../alloy/config.alloy" | indent 6 }}
+
+  clustering:
+    enabled: false
+
+  stabilityLevel: generally-available
+
+  resources:
+    requests:
+      cpu: 25m
+      memory: 128Mi
+    limits:
+      cpu: 300m
+      memory: 384Mi
+
+configReloader:
+  enabled: false
+
+serviceAccount:
+  create: true
+
+rbac:
+  create: true
+
+controller:
+  type: deployment
+  replicas: 1
+
+service:
+  enabled: true
+  type: ClusterIP
+
+extraPorts:
+  - name: otlp-grpc
+    port: 4317
+    targetPort: 4317
+    protocol: TCP
+  - name: otlp-http
+    port: 4318
+    targetPort: 4318
+    protocol: TCP
+
+serviceMonitor:
+  enabled: false
+
+ingress:
+  enabled: false

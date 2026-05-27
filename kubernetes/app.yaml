@@ -238,15 +238,95 @@ spec:
             - name: QUEUE_CONNECTION
               value: database
 
-            # Logging
+            # Logging (JSON stderr for Loki trace/log correlation)
             - name: LOG_CHANNEL
               value: stderr
             - name: LOG_LEVEL
               value: info
+            - name: LOG_STDERR_FORMATTER
+              value: Monolog\Formatter\JsonFormatter
+
+            # OpenTelemetry → Alloy → Tempo / Loki / Mimir
+            - name: OTEL_SERVICE_NAME
+              value: ats
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: http://alloy.observability.svc.cluster.local:4318
+            - name: OTEL_EXPORTER_OTLP_PROTOCOL
+              value: http/protobuf
+            - name: OTEL_TRACES_EXPORTER
+              value: otlp
+            - name: OTEL_METRICS_EXPORTER
+              value: otlp
+            - name: OTEL_LOGS_EXPORTER
+              value: otlp
+            - name: OTEL_PHP_AUTOLOAD_ENABLED
+              value: "true"
+            - name: OTEL_RESOURCE_ATTRIBUTES
+              value: deployment.environment=preprod
+            - name: OTEL_TRACES_SAMPLER_TYPE
+              value: traceidratio
+            - name: OTEL_TRACES_SAMPLER_TRACEIDRATIO_RATIO
+              value: "0.25"
 
             # Broadcasting & Queue
             - name: BROADCAST_CONNECTION
               value: log
+
+            # Object storage (candidate documents)
+            - name: MEDIA_DISK
+              valueFrom:
+                secretKeyRef:
+                  name: ats-laravel-secret
+                  key: MEDIA_DISK
+                  optional: true
+            - name: LIVEWIRE_TEMPORARY_FILE_UPLOAD_DISK
+              valueFrom:
+                secretKeyRef:
+                  name: ats-laravel-secret
+                  key: LIVEWIRE_TEMPORARY_FILE_UPLOAD_DISK
+                  optional: true
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: ats-laravel-secret
+                  key: AWS_ACCESS_KEY_ID
+                  optional: true
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: ats-laravel-secret
+                  key: AWS_SECRET_ACCESS_KEY
+                  optional: true
+            - name: AWS_DEFAULT_REGION
+              valueFrom:
+                secretKeyRef:
+                  name: ats-laravel-secret
+                  key: AWS_DEFAULT_REGION
+                  optional: true
+            - name: AWS_BUCKET
+              valueFrom:
+                secretKeyRef:
+                  name: ats-laravel-secret
+                  key: AWS_BUCKET
+                  optional: true
+            - name: AWS_URL
+              valueFrom:
+                secretKeyRef:
+                  name: ats-laravel-secret
+                  key: AWS_URL
+                  optional: true
+            - name: AWS_ENDPOINT
+              valueFrom:
+                secretKeyRef:
+                  name: ats-laravel-secret
+                  key: AWS_ENDPOINT
+                  optional: true
+            - name: AWS_USE_PATH_STYLE_ENDPOINT
+              valueFrom:
+                secretKeyRef:
+                  name: ats-laravel-secret
+                  key: AWS_USE_PATH_STYLE_ENDPOINT
+                  optional: true
           livenessProbe:
             httpGet:
               path: /up
