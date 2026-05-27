@@ -9,6 +9,7 @@ RUN install-php-extensions \
     zip \
     bcmath \
     gd \
+    exif \
     opentelemetry
 
 # Install Node.js for frontend build (LTS 20.x)
