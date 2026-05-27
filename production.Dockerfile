@@ -8,7 +8,8 @@ RUN install-php-extensions \
     pdo_pgsql \
     zip \
     bcmath \
-    gd
+    gd \
+    opentelemetry
 
 # Install Node.js for frontend build (LTS 20.x)
 RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \

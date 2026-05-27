@@ -1,2 +1,3 @@
 postgres-secret.env
 laravel-secret.env
+grafana-admin-secret.env

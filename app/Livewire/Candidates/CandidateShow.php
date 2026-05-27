@@ -3,13 +3,16 @@
 namespace App\Livewire\Candidates;
 
 use App\Actions\Candidates\AddCandidateNoteAction;
+use App\Actions\Candidates\DeleteCandidateDocumentAction;
 use App\Actions\Candidates\ScheduleInterviewAction;
 use App\Actions\Candidates\UpdateCandidateProfileAction;
+use App\Actions\Candidates\UploadCandidateDocumentAction;
 use App\Data\Candidates\CandidateNoteData;
 use App\Data\Candidates\UpdateCandidateProfileData;
 use App\Data\Candidates\InterviewData;
 use App\Data\Candidates\UpdateCandidateStageData;
 use App\Actions\Candidates\UpdateCandidateStageAction;
+use App\Data\Candidates\UploadCandidateDocumentData;
 use App\Models\Candidate;
 use App\Repositories\CandidateRepository;
 use App\Repositories\PipelineStageRepository;
@@ -17,12 +20,10 @@ use App\Services\HireCandidateWorkflowService;
 use App\Data\Candidates\ConvertCandidateToEmployeeData;
 use Carbon\CarbonImmutable;
 use App\Enums\GermanLanguageLevel;
-use App\Repositories\CandidateDocumentRepository;
 use App\Support\CandidateActivityPresentation;
 use App\Support\CandidatePipelineStageActivity;
 use App\Support\CandidateProfileValidationRules;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 
@@ -78,7 +79,7 @@ class CandidateShow extends Component
             'position',
             'pipelineStage',
             'notes.user',
-            'documents',
+            'media',
             'interviews',
             'activities' => fn ($q) => $q->with('causer')->latest(),
         ]);
@@ -117,7 +118,7 @@ class CandidateShow extends Component
             'position',
             'pipelineStage',
             'notes.user',
-            'documents',
+            'media',
             'interviews',
             'activities' => fn ($q) => $q->with('causer')->latest(),
         ]);
@@ -275,6 +276,8 @@ class CandidateShow extends Component
 
     public function uploadDocument(): void
     {
+        $this->authorize('update', $this->candidate);
+
         $this->validate([
             'documentFile' => ['required', 'file', 'max:10240', 'mimes:pdf,doc,docx,txt,jpg,jpeg,png'],
             'documentName' => ['required', 'string', 'max:255'],
@@ -283,32 +286,35 @@ class CandidateShow extends Component
             'documentName' => __('candidate.document_name'),
         ]);
 
-        // Read size and mime type before store(): with same disk, Livewire moves the temp file and metadata is no longer available.
-        $size = $this->documentFile->getSize();
-        $mimeType = $this->documentFile->getMimeType();
-
-        $path = $this->documentFile->store('candidate-documents/'.$this->candidate->id, 'local');
-        app(CandidateDocumentRepository::class)->create(
-            candidateId: $this->candidate->id,
-            name: $this->documentName,
-            path: $path,
-            mimeType: $mimeType,
-            size: $size,
+        app(UploadCandidateDocumentAction::class)->handle(
+            $this->candidate,
+            new UploadCandidateDocumentData(
+                documentName: $this->documentName,
+                tempPath: $this->documentFile->path(),
+                // Always rely on Livewire's configured temporary upload disk.
+                // Some storage backends may return bucket names here, which are not filesystem disk names.
+                tempDisk: config('livewire.temporary_file_upload.disk', 'local'),
+                originalFileName: $this->documentFile->getClientOriginalName(),
+                absolutePath: $this->documentFile->getRealPath() ?: null,
+            ),
         );
 
         $this->reset(['documentFile', 'documentName']);
-        $this->candidate->load(['documents']);
+        $this->candidate->load(['media']);
         $this->dispatch('notify', __('candidate.document_uploaded'));
     }
 
-    public function deleteDocument(int $documentId): void
+    public function deleteDocument(int $mediaId): void
     {
-        $document = $this->candidate->documents->firstWhere('id', $documentId);
-        if ($document) {
-            app(CandidateDocumentRepository::class)->delete($document);
-            $this->candidate->load(['documents']);
-            $this->dispatch('notify', __('candidate.document_deleted'));
+        $this->authorize('update', $this->candidate);
+
+        if ($this->candidate->getMedia('documents')->firstWhere('id', $mediaId) === null) {
+            return;
         }
+
+        app(DeleteCandidateDocumentAction::class)->handle($this->candidate, $mediaId);
+        $this->candidate->load(['media']);
+        $this->dispatch('notify', __('candidate.document_deleted'));
     }
 
     /**

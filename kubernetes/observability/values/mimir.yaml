@@ -1,0 +1,143 @@
+# Mimir minimal — filesystem, no MinIO, very low CPU requests for single-node k3s.
+minio:
+  enabled: false
+
+mimir:
+  structuredConfig:
+    multitenancy_enabled: false
+    common:
+      storage:
+        backend: filesystem
+    blocks_storage:
+      backend: filesystem
+      filesystem:
+        dir: /data/blocks
+    compactor:
+      data_dir: /data/compactor
+    ruler_storage:
+      backend: filesystem
+      filesystem:
+        dir: /data/ruler
+    alertmanager_storage:
+      backend: filesystem
+      filesystem:
+        dir: /data/alertmanager
+
+alertmanager:
+  enabled: false
+
+enterprise:
+  enabled: false
+
+metaMonitoring:
+  dashboards:
+    enabled: false
+  serviceMonitor:
+    enabled: false
+  grafanaAgent:
+    enabled: false
+
+# Shared small resource profile for all Mimir components
+nginx:
+  enabled: true
+  replicas: 1
+  resources:
+    requests:
+      cpu: 10m
+      memory: 32Mi
+    limits:
+      cpu: 100m
+      memory: 128Mi
+
+distributor:
+  replicas: 1
+  resources:
+    requests:
+      cpu: 10m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+
+ingester:
+  replicas: 1
+  zoneAwareReplication:
+    enabled: false
+  persistentVolume:
+    enabled: true
+    # Do not change size after first install (StatefulSet volumeClaimTemplates are immutable).
+    size: 15Gi
+  resources:
+    requests:
+      cpu: 10m
+      memory: 128Mi
+    limits:
+      cpu: 300m
+      memory: 512Mi
+
+querier:
+  replicas: 1
+  resources:
+    requests:
+      cpu: 10m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+
+query_frontend:
+  replicas: 1
+  resources:
+    requests:
+      cpu: 10m
+      memory: 32Mi
+    limits:
+      cpu: 100m
+      memory: 128Mi
+
+query_scheduler:
+  replicas: 1
+  resources:
+    requests:
+      cpu: 10m
+      memory: 32Mi
+    limits:
+      cpu: 100m
+      memory: 128Mi
+
+store_gateway:
+  replicas: 1
+  zoneAwareReplication:
+    enabled: false
+  persistentVolume:
+    enabled: true
+    size: 10Gi
+  resources:
+    requests:
+      cpu: 10m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+
+compactor:
+  replicas: 1
+  persistentVolume:
+    enabled: true
+    size: 10Gi
+  resources:
+    requests:
+      cpu: 10m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+
+ruler:
+  enabled: false
+
+overrides_exporter:
+  enabled: false
+
+rollout_operator:
+  enabled: false

@@ -1,0 +1,90 @@
+// OTLP ingestion from Laravel (and other apps) → Tempo / Loki / Prometheus.
+// Kubernetes pod logs (stderr) → Loki via loki.source.kubernetes.
+
+logging {
+  level  = "info"
+  format = "logfmt"
+}
+
+otelcol.receiver.otlp "default" {
+  grpc {
+    endpoint = "0.0.0.0:4317"
+  }
+
+  http {
+    endpoint = "0.0.0.0:4318"
+  }
+
+  output {
+    metrics = [otelcol.processor.resourcedetection.default.input]
+    logs    = [otelcol.processor.resourcedetection.default.input]
+    traces  = [otelcol.processor.resourcedetection.default.input]
+  }
+}
+
+otelcol.processor.resourcedetection "default" {
+  detectors = ["env", "system"]
+
+  system {
+    hostname_sources = ["os"]
+  }
+
+  output {
+    metrics = [otelcol.processor.batch.default.input]
+    logs    = [otelcol.processor.batch.default.input]
+    traces  = [otelcol.processor.batch.default.input]
+  }
+}
+
+otelcol.processor.batch "default" {
+  output {
+    metrics = [otelcol.exporter.prometheus.metrics.input]
+    logs    = [otelcol.exporter.loki.otlp_logs.input]
+    traces  = [otelcol.exporter.otlp.tempo.input]
+  }
+}
+
+otelcol.exporter.otlp "tempo" {
+  client {
+    endpoint = "tempo.observability.svc.cluster.local:4317"
+    tls {
+      insecure             = true
+      insecure_skip_verify = true
+    }
+  }
+}
+
+otelcol.exporter.loki "otlp_logs" {
+  forward_to = [loki.write.otlp.receiver]
+}
+
+loki.write "otlp" {
+  endpoint {
+    url = "http://loki.observability.svc.cluster.local:3100/loki/api/v1/push"
+  }
+}
+
+otelcol.exporter.prometheus "metrics" {
+  forward_to = [prometheus.remote_write.default.receiver]
+}
+
+prometheus.remote_write "default" {
+  endpoint {
+    url = "http://prometheus-server.observability.svc.cluster.local:9090/api/v1/write"
+  }
+}
+
+discovery.kubernetes "pods" {
+  role = "pod"
+}
+
+loki.source.kubernetes "pods" {
+  targets    = discovery.kubernetes.pods.targets
+  forward_to = [loki.write.k8s_logs.receiver]
+}
+
+loki.write "k8s_logs" {
+  endpoint {
+    url = "http://loki.observability.svc.cluster.local:3100/loki/api/v1/push"
+  }
+}

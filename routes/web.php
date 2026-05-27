@@ -81,7 +81,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('candidates/csv/export', [CsvExportController::class, 'candidates'])->name('candidates.csv.export');
     Route::livewire('candidates/create', CreateCandidate::class)->name('candidates.create');
     Route::livewire('candidates/{candidate}', CandidateShow::class)->name('candidates.show');
-    Route::get('candidates/{candidate}/documents/{document}/download', [CandidateDocumentController::class, 'download'])
+    Route::get('candidates/{candidate}/documents/{media}/download', [CandidateDocumentController::class, 'download'])
         ->name('candidates.documents.download');
     Route::livewire('jobs', PositionList::class)->name('jobs.index');
     Route::get('jobs/csv/template', [CsvTemplateController::class, 'positions'])->name('jobs.csv.template');

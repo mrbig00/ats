@@ -1,0 +1,85 @@
+# LGTM observability stack for k3s (namespace: observability).
+#
+# Prerequisites (local deploy): helm 3, helm-diff plugin, helmfile on PATH.
+#   bash kubernetes/observability/install-helmfile.sh
+# Or install helm-diff only: helm plugin install https://github.com/databus23/helm-diff
+# Without helm-diff, use: helmfile sync   (skips the diff preview step)
+#
+# Bootstrap (one-time, before first deploy):
+#   1. kubectl apply -f kubernetes/observability/namespace.yaml
+#   2. cp kubernetes/observability/grafana-admin-secret.env.example \
+#        kubernetes/observability/grafana-admin-secret.env  # set ADMIN_PASSWORD
+#   3. kubectl create secret generic grafana-admin -n observability \
+#        --from-env-file=kubernetes/observability/grafana-admin-secret.env
+#   4. helmfile -f kubernetes/observability/helmfile.yaml apply
+#   5. kubectl apply -f kubernetes/observability/middleware-https-redirect.yaml
+#   6. kubectl apply -f kubernetes/observability/ingress-grafana.yaml
+#   7. Deploy app with OTEL env (kubernetes/app.yaml) after Alloy is ready.
+#
+# Upgrade: helmfile -f kubernetes/observability/helmfile.yaml apply
+#
+# If pods stay Pending with "Insufficient cpu", check node capacity:
+#   kubectl describe node | grep -A5 "Allocated resources"
+# Then re-apply after lowering values/*.yaml requests or stop non-essential workloads.
+#
+# Stuck Pending / duplicate pods / failed upgrades on a small node:
+#   bash kubernetes/observability/reset-observability.sh
+#
+# Post-deploy validation:
+#   1. curl -I https://grafana.k3s.szanto-zoltan.com
+#   2. Grafana → Explore → Tempo (Service :3100): { resource.service.name = "ats" }
+#   3. Grafana → Explore → Loki: {namespace="default", app="ats"}
+#   4. Grafana → Node Exporter Full: Job = node-exporter, Host = <k8s node name> (not public IP)
+#   5. App metrics: rate(http_server_request_duration_count{service_name="ats"}[5m])
+#   6. Open a trace → "Logs for this span" links to Loki
+
+repositories:
+  - name: grafana
+    url: https://grafana.github.io/helm-charts
+  - name: prometheus-community
+    url: https://prometheus-community.github.io/helm-charts
+
+releases:
+  - name: loki
+    namespace: observability
+    chart: grafana/loki
+    version: 6.30.0
+    values:
+      - values/loki.yaml
+
+  - name: tempo
+    namespace: observability
+    chart: grafana/tempo
+    version: 1.23.0
+    values:
+      - values/tempo.yaml
+
+  # Single Prometheus replaces mimir-distributed (~10 pods) on single-node k3s.
+  - name: prometheus
+    namespace: observability
+    chart: prometheus-community/prometheus
+    version: 27.20.0
+    values:
+      - values/prometheus.yaml
+
+  - name: alloy
+    namespace: observability
+    chart: grafana/alloy
+    version: 0.12.0
+    values:
+      - values/alloy.yaml.gotmpl
+    needs:
+      - observability/loki
+      - observability/tempo
+      - observability/prometheus
+
+  - name: grafana
+    namespace: observability
+    chart: grafana/grafana
+    version: 9.2.10
+    values:
+      - values/grafana.yaml.gotmpl
+    needs:
+      - observability/loki
+      - observability/tempo
+      - observability/prometheus

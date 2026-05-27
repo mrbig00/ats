@@ -9,11 +9,14 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Spatie\Activitylog\Models\Concerns\HasActivity;
 use Spatie\Activitylog\Support\LogOptions;
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
 
-class Candidate extends Model
+class Candidate extends Model implements HasMedia
 {
     use HasActivity;
     use HasFactory;
+    use InteractsWithMedia;
 
     protected $fillable = [
         'person_id',
@@ -60,9 +63,10 @@ class Candidate extends Model
         return $this->hasMany(CandidateNote::class, 'candidate_id');
     }
 
-    public function documents(): HasMany
+    public function registerMediaCollections(): void
     {
-        return $this->hasMany(CandidateDocument::class, 'candidate_id');
+        $this->addMediaCollection('documents')
+            ->useDisk(config('media-library.disk_name'));
     }
 
     public function calendarEvents(): HasMany

@@ -31,5 +31,8 @@
         <env name="PULSE_ENABLED" value="false"/>
         <env name="TELESCOPE_ENABLED" value="false"/>
         <env name="NIGHTWATCH_ENABLED" value="false"/>
+        <env name="OTEL_SDK_DISABLED" value="true"/>
+        <env name="MEDIA_DISK" value="local"/>
+        <env name="LIVEWIRE_TEMPORARY_FILE_UPLOAD_DISK" value="local"/>
     </php>
 </phpunit>

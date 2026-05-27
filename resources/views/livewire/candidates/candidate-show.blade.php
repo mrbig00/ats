@@ -192,7 +192,7 @@
             <div class="space-y-6">
                 <flux:card>
                     <flux:heading size="lg" class="mb-4">{{ __('candidate.documents') }}</flux:heading>
-                    <form wire:submit="uploadDocument" class="mb-4 space-y-3">
+                    <form wire:submit="uploadDocument" enctype="multipart/form-data" class="mb-4 space-y-3">
                         <flux:field>
                             <flux:label>{{ __('candidate.document_name') }}</flux:label>
                             <flux:input wire:model="documentName" type="text" />
@@ -201,20 +201,30 @@
                         <flux:field>
                             <flux:label>{{ __('candidate.document') }}</flux:label>
                             <input type="file" wire:model="documentFile" class="block w-full text-sm" accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png" />
+                            <flux:text wire:loading wire:target="documentFile" class="text-xs text-zinc-500 dark:text-zinc-400">
+                                {{ __('common.loading') }}
+                            </flux:text>
                             <flux:error name="documentFile" />
                         </flux:field>
-                        <flux:button type="submit" size="sm" wire:loading.attr="disabled">{{ __('candidate.upload_document') }}</flux:button>
+                        <flux:button
+                            type="submit"
+                            size="sm"
+                            wire:loading.attr="disabled"
+                            wire:target="documentFile,uploadDocument"
+                        >
+                            {{ __('candidate.upload_document') }}
+                        </flux:button>
                     </form>
                     <ul class="space-y-2">
-                        @foreach ($candidate->documents as $doc)
-                            <li class="flex items-center justify-between rounded-lg border border-zinc-200 p-2 dark:border-zinc-700" wire:key="doc-{{ $doc->id }}">
-                                <a href="{{ route('candidates.documents.download', [$candidate, $doc]) }}" class="text-sm font-medium hover:underline" target="_blank" rel="noopener">
-                                    {{ $doc->name }}
+                        @foreach ($candidate->getMedia('documents') as $media)
+                            <li class="flex items-center justify-between rounded-lg border border-zinc-200 p-2 dark:border-zinc-700" wire:key="doc-{{ $media->id }}">
+                                <a href="{{ route('candidates.documents.download', [$candidate, $media]) }}" class="text-sm font-medium hover:underline" target="_blank" rel="noopener">
+                                    {{ $media->name }}
                                 </a>
-                                <flux:button size="sm" variant="ghost" icon="trash" wire:click="deleteDocument({{ $doc->id }})" wire:confirm="{{ __('candidate.confirm_delete_document') }}"></flux:button>
+                                <flux:button size="sm" variant="ghost" icon="trash" wire:click="deleteDocument({{ $media->id }})" wire:confirm="{{ __('candidate.confirm_delete_document') }}"></flux:button>
                             </li>
                         @endforeach
-                        @if ($candidate->documents->isEmpty())
+                        @if ($candidate->getMedia('documents')->isEmpty())
                             <flux:text class="text-zinc-500 dark:text-zinc-400 text-sm">{{ __('candidate.no_documents') }}</flux:text>
                         @endif
                     </ul>
